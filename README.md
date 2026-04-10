@@ -153,6 +153,7 @@ Current managed namespaces:
 - `kube-system`
 - `metallb-system`
 - `vicinity`
+- `freshrss`
 
 # Manual prerequisites
 
@@ -162,10 +163,36 @@ Required secrets:
 - `default/ghcr-creds`
 - `vicinity/ghcr-creds`
 - `vicinity/vicinity-secrets`
+- `freshrss/freshrss-bootstrap`
 
 Expected keys:
 - `ghcr-creds`: docker registry auth for `ghcr.io`
 - `vicinity-secrets`: `supabase-url`, `supabase-anon-key`, `supabase-service-role-key`
+- `freshrss-bootstrap`: `FRESHRSS_INSTALL`, `FRESHRSS_USER`
+
+## FreshRSS setup
+
+FreshRSS is managed by Flux in `flux/freshrss` and is exposed through Traefik at `https://rss.webguru.ca`.
+
+Before Flux reconciles the FreshRSS manifests, create DNS for `rss.webguru.ca` pointing at the same public route used by the Traefik/MetalLB endpoint for `10.88.111.240`.
+
+Create the bootstrap secret manually so admin credentials are not committed to Git:
+
+```sh
+kubectl create namespace freshrss
+
+kubectl -n freshrss create secret generic freshrss-bootstrap \
+  --from-literal=FRESHRSS_INSTALL='--api-enabled --base-url https://rss.webguru.ca --default-user admin --language en' \
+  --from-literal=FRESHRSS_USER='--user admin --password <admin-password> --api-password <api-password> --email varun.mehrotra@webguru.ca --language en'
+```
+
+After Flux applies the manifests, verify the deployment:
+
+```sh
+kubectl get deploy,svc,ingress,pvc -n freshrss
+kubectl logs -n freshrss deploy/freshrss
+kubectl get ingress -n freshrss
+```
 
 # Audit commands
 

@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: freshrss
+  namespace: freshrss
+  labels:
+    app: freshrss
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: freshrss
+  template:
+    metadata:
+      labels:
+        app: freshrss
+    spec:
+      containers:
+        - name: freshrss
+          image: ghcr.io/freshrss/freshrss:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          env:
+            - name: TZ
+              value: America/Toronto
+            - name: CRON_MIN
+              value: "13,43"
+            - name: FRESHRSS_ENV
+              value: production
+            - name: FRESHRSS_INSTALL
+              valueFrom:
+                secretKeyRef:
+                  name: freshrss-bootstrap
+                  key: FRESHRSS_INSTALL
+            - name: FRESHRSS_USER
+              valueFrom:
+                secretKeyRef:
+                  name: freshrss-bootstrap
+                  key: FRESHRSS_USER
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 6
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            failureThreshold: 3
+            timeoutSeconds: 2
+          volumeMounts:
+            - name: freshrss-data
+              mountPath: /var/www/FreshRSS/data
+            - name: freshrss-extensions
+              mountPath: /var/www/FreshRSS/extensions
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+      volumes:
+        - name: freshrss-data
+          persistentVolumeClaim:
+            claimName: freshrss-data
+        - name: freshrss-extensions
+          persistentVolumeClaim:
+            claimName: freshrss-extensions

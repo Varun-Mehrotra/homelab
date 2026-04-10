@@ -6,3 +6,4 @@ resources:
   - kube-system
   - metallb-system
   - vicinity
+  - freshrss
