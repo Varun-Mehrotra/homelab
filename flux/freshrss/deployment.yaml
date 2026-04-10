@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: freshrss
-          image: ghcr.io/freshrss/freshrss:latest
+          image: freshrss/freshrss:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
