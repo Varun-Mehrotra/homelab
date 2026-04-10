@@ -154,6 +154,8 @@ Current managed namespaces:
 - `metallb-system`
 - `vicinity`
 - `freshrss`
+- `ntfy`
+- `osrs-flips`
 
 # Manual prerequisites
 
@@ -164,11 +166,16 @@ Required secrets:
 - `vicinity/ghcr-creds`
 - `vicinity/vicinity-secrets`
 - `freshrss/freshrss-bootstrap`
+- `ntfy/ntfy-auth`
+- `osrs-flips/ghcr-creds`
+- `osrs-flips/osrs-recommender-secrets`
 
 Expected keys:
 - `ghcr-creds`: docker registry auth for `ghcr.io`
 - `vicinity-secrets`: `supabase-url`, `supabase-anon-key`, `supabase-service-role-key`
 - `freshrss-bootstrap`: `FRESHRSS_INSTALL`, `FRESHRSS_USER`
+- `ntfy-auth`: `NTFY_AUTH_USERS`, `NTFY_AUTH_ACCESS`, `NTFY_AUTH_TOKENS`
+- `osrs-recommender-secrets`: `NTFY_TOKEN`
 
 ## FreshRSS setup
 
@@ -192,6 +199,76 @@ After Flux applies the manifests, verify the deployment:
 kubectl get deploy,svc,ingress,pvc -n freshrss
 kubectl logs -n freshrss deploy/freshrss
 kubectl get ingress -n freshrss
+```
+
+## ntfy setup
+
+ntfy is managed by Flux in `flux/ntfy` and is exposed through Traefik at `https://ntfy.webguru.ca`.
+
+Before Flux reconciles the manifests, create DNS for `ntfy.webguru.ca` pointing at the same public route used by the Traefik/MetalLB endpoint for `10.88.111.240`.
+
+Create the ntfy auth secret manually so password hashes and tokens are not committed to Git. Generate bcrypt password hashes and access tokens with the ntfy CLI or container, then create the secret:
+
+```sh
+kubectl create namespace ntfy
+
+kubectl -n ntfy create secret generic ntfy-auth \
+  --from-literal=NTFY_AUTH_USERS='varun:<bcrypt-hash>:user,osrs-recommender:<bcrypt-hash>:user' \
+  --from-literal=NTFY_AUTH_ACCESS='varun:osrs-flips:ro,osrs-recommender:osrs-flips:wo' \
+  --from-literal=NTFY_AUTH_TOKENS='osrs-recommender:<write-token>:OSRS recommender,varun:<read-token>:Varun client'
+```
+
+The ntfy token format starts with `tk_` and is 32 characters total. The recommender needs the `osrs-recommender` write token in its own namespace secret.
+
+After Flux applies the manifests, verify ntfy:
+
+```sh
+kubectl get deploy,svc,ingress,pvc -n ntfy
+kubectl logs -n ntfy deploy/ntfy
+```
+
+## OSRS flip recommender
+
+The OSRS flip recommender source lives in `apps/osrs-flip-recommender`. Flux runs it daily at 5 PM `America/Toronto` from `flux/osrs-flips`.
+
+Build and publish the image after changing the app:
+
+```sh
+docker build -t ghcr.io/varun-mehrotra/osrs-flip-recommender:latest ./apps/osrs-flip-recommender
+docker push ghcr.io/varun-mehrotra/osrs-flip-recommender:latest
+```
+
+Create the recommender namespace secrets manually:
+
+```sh
+kubectl create namespace osrs-flips
+
+kubectl -n osrs-flips create secret docker-registry ghcr-creds \
+  --docker-server=ghcr.io \
+  --docker-username="Varun-Mehrotra" \
+  --docker-password="<ghcr-token>" \
+  --docker-email="varun.mehrotra@webguru.ca"
+
+kubectl -n osrs-flips create secret generic osrs-recommender-secrets \
+  --from-literal=NTFY_TOKEN='<osrs-recommender-write-token>'
+```
+
+Run locally without publishing to ntfy:
+
+```sh
+cd apps/osrs-flip-recommender
+OSRS_USER_AGENT='homelab-osrs-flip-recommender - varun.mehrotra@webguru.ca' \
+DRY_RUN=true \
+PYTHONPATH=src \
+python3 -m osrs_flip_recommender.main
+```
+
+After Flux applies the manifests, verify the CronJob:
+
+```sh
+kubectl get cronjob,jobs,pods -n osrs-flips
+kubectl create job -n osrs-flips --from=cronjob/osrs-flip-recommender osrs-flip-recommender-manual
+kubectl logs -n osrs-flips job/osrs-flip-recommender-manual
 ```
 
 # Audit commands

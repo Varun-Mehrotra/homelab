@@ -7,3 +7,5 @@ resources:
   - metallb-system
   - vicinity
   - freshrss
+  - ntfy
+  - osrs-flips

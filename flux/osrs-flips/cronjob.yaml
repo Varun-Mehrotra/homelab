@@ -1,0 +1,61 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: osrs-flip-recommender
+  namespace: osrs-flips
+spec:
+  schedule: "0 17 * * *"
+  timeZone: America/Toronto
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app: osrs-flip-recommender
+        spec:
+          restartPolicy: Never
+          imagePullSecrets:
+            - name: ghcr-creds
+          containers:
+            - name: osrs-flip-recommender
+              image: ghcr.io/varun-mehrotra/osrs-flip-recommender:latest
+              imagePullPolicy: Always
+              env:
+                - name: NTFY_BASE_URL
+                  value: https://ntfy.webguru.ca
+                - name: NTFY_TOPIC
+                  value: osrs-flips
+                - name: OSRS_USER_AGENT
+                  value: homelab-osrs-flip-recommender - varun.mehrotra@webguru.ca
+                - name: TOP_N
+                  value: "12"
+                - name: MIN_DAILY_VOLUME
+                  value: "1000000"
+                - name: GE_SLOT_BUDGET_GP
+                  value: "8000000"
+                - name: BUY_LIMIT_MULTIPLIER
+                  value: "3"
+                - name: CANDIDATE_LIMIT
+                  value: "80"
+                - name: MIN_TIMESERIES_SAMPLES
+                  value: "96"
+                - name: MIN_POSITIVE_MARGIN_RATIO
+                  value: "0.70"
+                - name: MAX_MID_PRICE_CV
+                  value: "0.08"
+                - name: NTFY_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: osrs-recommender-secrets
+                      key: NTFY_TOKEN
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  cpu: 500m
+                  memory: 256Mi
