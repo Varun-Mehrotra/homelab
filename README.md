@@ -139,7 +139,7 @@ kubectl -n default create secret docker-registry ghcr-creds \
   --docker-email="varun.mehrotra@webguru.ca" \
 
 
-docker build -t ghcr.io/varun-mehrotra/private-llm-site:latest .
+docker build -t ghcr.io/varun-mehrotra/private-llm-site:latest ./static-site
 docker push ghcr.io/varun-mehrotra/private-llm-site:latest
 kubectl rollout restart deployment static-site -n default
 
