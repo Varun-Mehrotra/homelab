@@ -1,1 +1,144 @@
 # homelab
+
+I setup a homelab with 2 raspberry pi nodes, using k3s. 
+
+pi-node-1 : 10.88.111.37 (master node)
+pi-node-2 : 10.88.111.34 (worker node)
+
+
+## Setting up the SD card for initial boot
+
+Flash using the Raspberry Pi Imager: 
+https://www.raspberrypi.com/software/
+
+Use the raspbery pi os lite (64-bit)
+Add blank file called `ssh` to the root of the SD card. 
+
+Create a file called `userconf` in the same boot partition of the SD card. This file should contain a single line of text, consisting of {name}:{encrypted-password}
+
+## Install k3s
+
+sudo apt-get install vim
+
+Update `/boot/firmware/cmdline.txt` to include:
+```
+cgroup_memory=1 cgroup_enable=memory
+```
+
+
+Install on first node: 
+```
+curl -sfL https://get.k3s.io | sh -
+```
+
+Get the tokens from the first node: 
+
+sudo cat /var/lib/rancher/k3s/server/node-token
+
+
+Set up the second node: 
+
+export K3S_URL=https://10.88.111.37:6443
+export K3S_TOKEN=<token>
+curl -sfL https://get.k3s.io | sh -
+
+
+
+# Scraping the kubeconfig from the first node
+
+DELETE EXISTING KUBECONFIG `default` CONTEXT AND USER
+
+Grab the kubeconfig from the node: 
+ssh admin@10.88.111.37 "sudo cat /etc/rancher/k3s/k3s.yaml" > ~/.kube/config-k3s
+
+Change local host in the kubeconfig to the ip, then merge with your existing kubeconfig:
+
+export KUBECONFIG=~/.kube/config:~/.kube/config-k3s
+kubectl config view --flatten > ~/.kube/config-merged
+mv ~/.kube/config-merged ~/.kube/config
+
+
+# Installing MetalLB
+MetalLB provides traefik with Virtual IPs (VIPs) for ingress
+
+```
+helm repo add metallb https://metallb.github.io/metallb
+helm repo update
+helm install metallb metallb/metallb -n metallb-system --create-namespace
+```
+
+
+Set the address pool for metal lb using a range that is NOT used by your DHCP server, but still in your router's subnet. 
+
+```
+kubectl apply -f - <<EOF
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: default-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 10.88.111.240-10.88.111.250
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: l2-adv
+  namespace: metallb-system
+EOF
+```
+
+
+
+Traefik overwrite to allow for TLS management
+
+```
+cat <<'YAML' | kubectl apply -f -
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    additionalArguments:
+      - --certificatesresolvers.le.acme.email=varun.mehrotra@webguru.ca
+      - --certificatesresolvers.le.acme.storage=/data/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+
+    ports:
+      web:
+        exposedPort: 80
+        redirections:
+          entryPoint:
+            to: websecure
+            scheme: https
+            permanent: true
+
+      websecure:
+        exposedPort: 443
+        tls:
+          enabled: true
+
+    persistence:
+      enabled: true
+      path: /data
+      size: 1Gi
+      accessMode: ReadWriteOnce
+
+YAML
+```
+
+# Setup image pull secret: 
+kubectl -n default create secret docker-registry ghcr-creds \
+  --docker-server=ghcr.io \
+  --docker-username="Varun-Mehrotra" \
+  --docker-password="" \
+  --docker-email="varun.mehrotra@webguru.ca" \
+
+
+docker build -t ghcr.io/varun-mehrotra/private-llm-site:latest .
+docker push ghcr.io/varun-mehrotra/private-llm-site:latest
+kubectl rollout restart deployment static-site -n default

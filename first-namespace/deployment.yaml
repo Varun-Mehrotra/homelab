@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: static-site
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: static-site
+  template:
+    metadata:
+      labels:
+        app: static-site
+    spec:
+      imagePullSecrets:
+        - name: ghcr-creds
+      containers:
+      - name: static-site
+        image: ghcr.io/varun-mehrotra/private-llm-site:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+
