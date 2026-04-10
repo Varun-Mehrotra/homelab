@@ -142,3 +142,42 @@ kubectl -n default create secret docker-registry ghcr-creds \
 docker build -t ghcr.io/varun-mehrotra/private-llm-site:latest .
 docker push ghcr.io/varun-mehrotra/private-llm-site:latest
 kubectl rollout restart deployment static-site -n default
+
+# Flux layout
+
+Flux manifests are organized by namespace under `flux/<namespace>/`.
+
+Current managed namespaces:
+- `flux-system`
+- `default`
+- `metallb-system`
+- `vicinity`
+
+# Manual prerequisites
+
+Secrets are still managed manually in this repo for now and must exist before Flux reconciliation can fully succeed for app workloads.
+
+Required secrets:
+- `default/ghcr-creds`
+- `vicinity/ghcr-creds`
+- `vicinity/vicinity-secrets`
+
+Expected keys:
+- `ghcr-creds`: docker registry auth for `ghcr.io`
+- `vicinity-secrets`: `supabase-url`, `supabase-anon-key`, `supabase-service-role-key`
+
+# Audit commands
+
+Use these commands after each migration step to compare Flux state with the live cluster:
+
+```sh
+helm list -A
+kubectl get deploy,svc,ingress -A
+kubectl get gitrepositories,kustomizations,helmrepositories,helmreleases -A
+```
+
+# Deferred Traefik cutover
+
+Traefik cutover is intentionally deferred from the current Flux sync path.
+
+The planned `flux/kube-system` bundle should only be added to the top-level Flux kustomization when you are ready to replace the packaged k3s Traefik install with Flux-managed Helm releases.

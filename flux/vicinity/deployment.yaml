@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vicinity
+  namespace: vicinity
+  labels:
+    app: vicinity
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vicinity
+  template:
+    metadata:
+      labels:
+        app: vicinity
+    spec:
+      imagePullSecrets:
+        - name: ghcr-creds
+      containers:
+        - name: vicinity
+          image: ghcr.io/varun-mehrotra/vicinity:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: NEXT_PUBLIC_SUPABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: vicinity-secrets
+                  key: supabase-url
+            - name: NEXT_PUBLIC_SUPABASE_ANON_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vicinity-secrets
+                  key: supabase-anon-key
+            - name: SUPABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: vicinity-secrets
+                  key: supabase-url
+            - name: SUPABASE_ANON_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vicinity-secrets
+                  key: supabase-anon-key
+            - name: SUPABASE_SERVICE_ROLE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: vicinity-secrets
+                  key: supabase-service-role-key
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
