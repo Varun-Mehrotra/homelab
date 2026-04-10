@@ -229,7 +229,7 @@ kubectl logs -n ntfy deploy/ntfy
 
 ## OSRS flip recommender
 
-The OSRS flip recommender source lives in `apps/osrs-flip-recommender`. Flux runs it daily at 5 PM `America/Toronto` from `flux/osrs-flips`.
+The OSRS flip recommender source lives in `apps/osrs-flip-recommender`. Flux runs it daily at 5 PM `America/Toronto` from `flux/osrs-flips` and publishes to ntfy through the internal `http://ntfy-svc.ntfy.svc.cluster.local` service URL.
 
 Build and publish the image after changing the app:
 

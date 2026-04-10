@@ -26,7 +26,7 @@ spec:
               imagePullPolicy: Always
               env:
                 - name: NTFY_BASE_URL
-                  value: https://ntfy.webguru.ca
+                  value: http://ntfy-svc.ntfy.svc.cluster.local
                 - name: NTFY_TOPIC
                   value: osrs-flips
                 - name: OSRS_USER_AGENT
