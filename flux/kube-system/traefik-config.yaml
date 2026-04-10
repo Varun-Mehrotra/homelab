@@ -1,0 +1,33 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: traefik
+  namespace: kube-system
+spec:
+  failurePolicy: reinstall
+  valuesContent: |-
+    additionalArguments:
+      - --certificatesresolvers.le.acme.email=varun.mehrotra@webguru.ca
+      - --certificatesresolvers.le.acme.storage=/data/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+
+    ports:
+      web:
+        exposedPort: 80
+        redirections:
+          entryPoint:
+            to: websecure
+            scheme: https
+            permanent: true
+
+      websecure:
+        exposedPort: 443
+        tls:
+          enabled: true
+
+    persistence:
+      enabled: true
+      path: /data
+      size: 1Gi
+      accessMode: ReadWriteOnce

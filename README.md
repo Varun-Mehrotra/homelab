@@ -150,6 +150,7 @@ Flux manifests are organized by namespace under `flux/<namespace>/`.
 Current managed namespaces:
 - `flux-system`
 - `default`
+- `kube-system`
 - `metallb-system`
 - `vicinity`
 
@@ -176,8 +177,8 @@ kubectl get deploy,svc,ingress -A
 kubectl get gitrepositories,kustomizations,helmrepositories,helmreleases -A
 ```
 
-# Deferred Traefik cutover
+# Traefik management
 
-Traefik cutover is intentionally deferred from the current Flux sync path.
+Traefik remains installed and owned by k3s.
 
-The planned `flux/kube-system` bundle should only be added to the top-level Flux kustomization when you are ready to replace the packaged k3s Traefik install with Flux-managed Helm releases.
+Flux manages only the `HelmChartConfig` override in `flux/kube-system` so the custom ACME, HTTPS redirect, and persistence settings stay in Git without replacing the packaged k3s release.

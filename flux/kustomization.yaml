@@ -3,5 +3,6 @@ kind: Kustomization
 resources:
   - flux-system
   - default
+  - kube-system
   - metallb-system
   - vicinity
