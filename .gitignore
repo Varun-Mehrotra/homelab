@@ -2,3 +2,6 @@ ssh
 userconf
 static-site/
 .DS_Store
+apps/*/.next/
+apps/*/node_modules/
+apps/*/coverage/

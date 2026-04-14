@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chelseas-plate
+  namespace: chelseas-plate
+  labels:
+    app: chelseas-plate
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chelseas-plate
+  template:
+    metadata:
+      labels:
+        app: chelseas-plate
+    spec:
+      imagePullSecrets:
+        - name: ghcr-creds
+      containers:
+        - name: chelseas-plate
+          image: ghcr.io/varun-mehrotra/chelseas-plate:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
+            successThreshold: 1
+            timeoutSeconds: 1
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

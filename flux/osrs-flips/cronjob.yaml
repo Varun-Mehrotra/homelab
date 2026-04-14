@@ -4,7 +4,7 @@ metadata:
   name: osrs-flip-recommender
   namespace: osrs-flips
 spec:
-  schedule: "0 17 * * *"
+  schedule: "0 23 * * *"
   timeZone: America/Toronto
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
@@ -41,12 +41,68 @@ spec:
                   value: "3"
                 - name: CANDIDATE_LIMIT
                   value: "80"
-                - name: MIN_TIMESERIES_SAMPLES
-                  value: "96"
-                - name: MIN_POSITIVE_MARGIN_RATIO
-                  value: "0.70"
-                - name: MAX_MID_PRICE_CV
-                  value: "0.08"
+                - name: BUY_WINDOW_HOURS
+                  value: "12"
+                - name: SELL_WINDOW_HOURS
+                  value: "14"
+                - name: BUY_PROFILE_DAYS
+                  value: "14"
+                - name: SELL_PROFILE_DAYS
+                  value: "14"
+                - name: BUY_FILL_MIN
+                  value: "0.40"
+                - name: SELL_REACH_MIN
+                  value: "0.50"
+                - name: MIN_EDGE_GP
+                  value: "20"
+                - name: MIN_EDGE_PCT
+                  value: "0.005"
+                - name: MIN_LIQ_SELL
+                  value: "0.35"
+                - name: MIN_STABILITY_SCORE
+                  value: "0.30"
+                - name: MAX_BUY_SHARE
+                  value: "0.01"
+                - name: STALE_MAX_MINUTES
+                  value: "60"
+                - name: MAX_MISSING_RATIO
+                  value: "0.20"
+                - name: Q_BUY_START
+                  value: "0.15"
+                - name: Q_BUY_STEP
+                  value: "0.05"
+                - name: Q_BUY_MAX
+                  value: "0.50"
+                - name: Q_SELL_START
+                  value: "0.55"
+                - name: Q_SELL_STEP
+                  value: "0.05"
+                - name: Q_SELL_MIN
+                  value: "0.25"
+                - name: GE_TAX_RATE
+                  value: "0.02"
+                - name: FILL_WEIGHT
+                  value: "0.50"
+                - name: JUMP_THRESHOLD_PCT
+                  value: "0.05"
+                - name: VOLATILITY_SCALE_PCT
+                  value: "2.50"
+                - name: DRIFT_SCALE_PCT
+                  value: "8.00"
+                - name: JUMP_RATE_SCALE
+                  value: "0.40"
+                - name: WEIGHT_ROI
+                  value: "0.35"
+                - name: WEIGHT_PROFIT
+                  value: "0.25"
+                - name: WEIGHT_LIQ_SELL
+                  value: "0.20"
+                - name: WEIGHT_STABILITY
+                  value: "0.20"
+                - name: WEIGHT_JUMP_PENALTY
+                  value: "0.15"
+                - name: WEIGHT_BUY_SHARE_PENALTY
+                  value: "0.15"
                 - name: NTFY_TOKEN
                   valueFrom:
                     secretKeyRef:

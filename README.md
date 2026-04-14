@@ -149,6 +149,7 @@ Flux manifests are organized by namespace under `flux/<namespace>/`.
 
 Current managed namespaces:
 - `flux-system`
+- `chelseas-plate`
 - `default`
 - `kube-system`
 - `metallb-system`
@@ -162,6 +163,7 @@ Current managed namespaces:
 Secrets are still managed manually in this repo for now and must exist before Flux reconciliation can fully succeed for app workloads.
 
 Required secrets:
+- `chelseas-plate/ghcr-creds`
 - `default/ghcr-creds`
 - `vicinity/ghcr-creds`
 - `vicinity/vicinity-secrets`
@@ -176,6 +178,47 @@ Expected keys:
 - `freshrss-bootstrap`: `FRESHRSS_INSTALL`, `FRESHRSS_USER`
 - `ntfy-auth`: `NTFY_AUTH_USERS`, `NTFY_AUTH_ACCESS`, `NTFY_AUTH_TOKENS`
 - `osrs-recommender-secrets`: `NTFY_TOKEN`
+
+## Chelsea's Plate setup
+
+Chelsea's Plate is managed by Flux in `flux/chelseas-plate` and is exposed through Traefik at `https://chelseas-plate.webguru.ca`.
+
+Before Flux reconciles the manifests, create DNS for `chelseas-plate.webguru.ca` pointing at the same public route used by the Traefik/MetalLB endpoint for `10.88.111.240`.
+
+Build and publish the image after changing the app:
+
+```sh
+docker build -t ghcr.io/varun-mehrotra/chelseas-plate:latest ./apps/chelseas-plate
+docker push ghcr.io/varun-mehrotra/chelseas-plate:latest
+```
+
+Create the namespace image pull secret manually:
+
+```sh
+kubectl create namespace chelseas-plate
+
+kubectl -n chelseas-plate create secret docker-registry ghcr-creds \
+  --docker-server=ghcr.io \
+  --docker-username="Varun-Mehrotra" \
+  --docker-password="<ghcr-token>" \
+  --docker-email="varun.mehrotra@webguru.ca"
+```
+
+Run locally:
+
+```sh
+cd apps/chelseas-plate
+npm install
+npm run dev
+```
+
+After Flux applies the manifests, verify the deployment:
+
+```sh
+kubectl get deploy,svc,ingress -n chelseas-plate
+kubectl logs -n chelseas-plate deploy/chelseas-plate
+kubectl get ingress -n chelseas-plate
+```
 
 ## FreshRSS setup
 
