@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { allergenOptions, type Allergen, type MenuItem, type Restaurant } from "@/lib/data";
+import { type Allergen, type MenuItem, type Restaurant } from "@/lib/data";
 import { filterMenuItems, summarizeDishSafety } from "@/lib/filter";
 
 type MenuBrowserProps = {
@@ -17,6 +17,11 @@ export function MenuBrowser({ restaurant, items }: MenuBrowserProps) {
     : restaurant.name.endsWith("s")
       ? `${restaurant.name}'`
       : `${restaurant.name}'s`;
+  const availableAllergens = useMemo(
+    () =>
+      Array.from(new Set(items.flatMap((item) => item.allergens))).sort((left, right) => left.localeCompare(right)),
+    [items],
+  );
 
   const filteredItems = useMemo(
     () =>
@@ -55,7 +60,7 @@ export function MenuBrowser({ restaurant, items }: MenuBrowserProps) {
           <div>
             <span className="field-label">Exclude allergens</span>
             <div className="allergen-grid">
-              {allergenOptions.map((allergen) => (
+              {availableAllergens.map((allergen) => (
                 <label key={allergen} className="checkbox-card">
                   <input
                     type="checkbox"
@@ -114,6 +119,9 @@ export function MenuBrowser({ restaurant, items }: MenuBrowserProps) {
                     <span className={`status-pill ${safety.tone}`}>{safety.label}</span>
                   </div>
                   <p>{item.description}</p>
+                  <p className="muted" style={{ marginTop: "14px" }}>
+                    Ingredients: {item.ingredients.join(", ")}
+                  </p>
                   <div className="result-tags" style={{ marginTop: "14px" }}>
                     {item.allergens.length > 0 ? (
                       item.allergens.map((allergen) => (

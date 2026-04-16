@@ -1,32 +1,32 @@
-name: Chelsea's Plate CI/CD
+name: Vicinity CI/CD
 
 on:
   pull_request:
     branches:
       - main
     paths:
-      - ".github/workflows/chelseas-plate.yml"
-      - "apps/chelseas-plate/**"
-      - "flux/chelseas-plate/**"
-      - "supabase/chelseas-plate/**"
+      - ".github/workflows/vicinity.yml"
+      - "apps/vicinity/**"
+      - "flux/vicinity/**"
+      - "supabase/vicinity/**"
   push:
     branches:
       - main
     paths:
-      - ".github/workflows/chelseas-plate.yml"
-      - "apps/chelseas-plate/**"
-      - "flux/chelseas-plate/**"
-      - "supabase/chelseas-plate/**"
+      - ".github/workflows/vicinity.yml"
+      - "apps/vicinity/**"
+      - "flux/vicinity/**"
+      - "supabase/vicinity/**"
   workflow_dispatch:
 
 concurrency:
-  group: chelseas-plate-${{ github.ref }}
+  group: vicinity-${{ github.ref }}
   cancel-in-progress: true
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: varun-mehrotra/chelseas-plate
-  APP_PATH: apps/chelseas-plate
+  IMAGE_NAME: varun-mehrotra/vicinity
+  APP_PATH: apps/vicinity
 
 jobs:
   test:
@@ -42,7 +42,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: apps/chelseas-plate/package-lock.json
+          cache-dependency-path: apps/vicinity/package-lock.json
 
       - name: Install dependencies
         working-directory: ${{ env.APP_PATH }}

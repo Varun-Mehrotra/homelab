@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MenuBrowser } from "@/components/menu-browser";
-import { getMenuItemsForRestaurant, getRestaurantBySlug, restaurants } from "@/lib/data";
+import { getMenuItemsForRestaurant, getRestaurantBySlug } from "@/lib/repository";
+
+export const dynamic = "force-dynamic";
 
 type RestaurantPageProps = {
   params: Promise<{
@@ -9,21 +11,15 @@ type RestaurantPageProps = {
   }>;
 };
 
-export function generateStaticParams() {
-  return restaurants.map((restaurant) => ({
-    slug: restaurant.slug,
-  }));
-}
-
 export default async function RestaurantPage({ params }: RestaurantPageProps) {
   const { slug } = await params;
-  const restaurant = getRestaurantBySlug(slug);
+  const restaurant = await getRestaurantBySlug(slug);
 
   if (!restaurant) {
     notFound();
   }
 
-  const items = getMenuItemsForRestaurant(restaurant.id);
+  const items = await getMenuItemsForRestaurant(restaurant.id);
 
   return (
     <main className="page-shell">
@@ -41,7 +37,7 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
         </div>
         <div className="chip-row">
           <span className="tag">{restaurant.cuisineHint}</span>
-          <span className="tag">{items.length} seeded menu items</span>
+          <span className="tag">{items.length} database-backed menu items</span>
         </div>
       </div>
 

@@ -1,0 +1,61 @@
+insert into events (
+  id,
+  title,
+  description,
+  start_time,
+  venue_name,
+  address_text,
+  latitude,
+  longitude,
+  contact_info,
+  booking_url,
+  price_text,
+  category,
+  city_region
+)
+values
+  (
+    '10111111-1111-4111-8111-111111111111',
+    'STACKT Night Market Social',
+    'Food vendors, local makers, and an easy first-night-in-town crowd near the waterfront corridor.',
+    '2026-07-03T19:00:00-04:00',
+    'STACKT Market',
+    '28 Bathurst St, Toronto, ON',
+    43.6426,
+    -79.4012,
+    null,
+    'https://example.com/stackt-night-market',
+    'Free',
+    'Markets',
+    'Toronto'
+  ),
+  (
+    '20222222-2222-4222-8222-222222222222',
+    'Brick Works Summer Yoga',
+    'A golden-hour outdoor flow session for travelers and locals looking for a slower Toronto evening.',
+    '2026-07-04T18:30:00-04:00',
+    'Evergreen Brick Works',
+    '550 Bayview Ave, Toronto, ON',
+    43.6843,
+    -79.3647,
+    'events@evergreen.ca',
+    null,
+    '$18',
+    'Wellness',
+    'Toronto'
+  ),
+  (
+    '30333333-3333-4333-8333-333333333333',
+    'Kensington Market Tasting Walk',
+    'A compact neighborhood crawl with snacks, stories, and enough local character to anchor a whole afternoon.',
+    '2026-07-05T13:00:00-04:00',
+    'Kensington Market Bell Tower',
+    '197 Augusta Ave, Toronto, ON',
+    43.6546,
+    -79.4023,
+    null,
+    'https://example.com/kensington-tasting',
+    'From $42',
+    'Food',
+    'Toronto'
+  );

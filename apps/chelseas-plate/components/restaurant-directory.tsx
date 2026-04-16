@@ -1,5 +1,5 @@
 import React from "react";
-import { getMenuItemsForRestaurant, type Restaurant } from "@/lib/data";
+import { type Restaurant } from "@/lib/data";
 import { RestaurantCard } from "@/components/restaurant-card";
 
 type RestaurantDirectoryProps = {
@@ -17,11 +17,7 @@ export function RestaurantDirectory({ restaurants }: RestaurantDirectoryProps) {
       </div>
       <div className="restaurant-grid">
         {restaurants.map((restaurant) => (
-          <RestaurantCard
-            key={restaurant.id}
-            restaurant={restaurant}
-            menuCount={getMenuItemsForRestaurant(restaurant.id).length}
-          />
+          <RestaurantCard key={restaurant.id} restaurant={restaurant} />
         ))}
       </div>
     </section>

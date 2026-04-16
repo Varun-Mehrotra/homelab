@@ -164,6 +164,7 @@ Secrets are still managed manually in this repo for now and must exist before Fl
 
 Required secrets:
 - `chelseas-plate/ghcr-creds`
+- `chelseas-plate/chelseas-plate-secrets`
 - `default/ghcr-creds`
 - `vicinity/ghcr-creds`
 - `vicinity/vicinity-secrets`
@@ -174,6 +175,7 @@ Required secrets:
 
 Expected keys:
 - `ghcr-creds`: docker registry auth for `ghcr.io`
+- `chelseas-plate-secrets`: `supabase-url`, `supabase-anon-key`, `supabase-service-role-key`
 - `vicinity-secrets`: `supabase-url`, `supabase-anon-key`, `supabase-service-role-key`
 - `freshrss-bootstrap`: `FRESHRSS_INSTALL`, `FRESHRSS_USER`
 - `ntfy-auth`: `NTFY_AUTH_USERS`, `NTFY_AUTH_ACCESS`, `NTFY_AUTH_TOKENS`
@@ -202,6 +204,11 @@ kubectl -n chelseas-plate create secret docker-registry ghcr-creds \
   --docker-username="Varun-Mehrotra" \
   --docker-password="<ghcr-token>" \
   --docker-email="varun.mehrotra@webguru.ca"
+
+kubectl -n chelseas-plate create secret generic chelseas-plate-secrets \
+  --from-literal=supabase-url='https://<project-ref>.supabase.co' \
+  --from-literal=supabase-anon-key='<anon-key>' \
+  --from-literal=supabase-service-role-key='<service-role-key>'
 ```
 
 Run locally:
@@ -209,7 +216,23 @@ Run locally:
 ```sh
 cd apps/chelseas-plate
 npm install
+export SUPABASE_URL='https://<project-ref>.supabase.co'
+export SUPABASE_ANON_KEY='<anon-key>'
+export SUPABASE_SERVICE_ROLE_KEY='<service-role-key>'
 npm run dev
+```
+
+Supabase schema and the live McDonald's Canada seed for Chelsea's Plate live in `supabase/chelseas-plate`:
+
+```sh
+psql "$SUPABASE_DB_URL" -f supabase/chelseas-plate/migrations/001_schema.sql
+psql "$SUPABASE_DB_URL" -f supabase/chelseas-plate/seed.sql
+```
+
+Regenerate that seed from the current McDonald's Canada menu pages with:
+
+```sh
+python3 supabase/chelseas-plate/scripts/generate_mcdonalds_seed.py
 ```
 
 After Flux applies the manifests, verify the deployment:
@@ -218,6 +241,62 @@ After Flux applies the manifests, verify the deployment:
 kubectl get deploy,svc,ingress -n chelseas-plate
 kubectl logs -n chelseas-plate deploy/chelseas-plate
 kubectl get ingress -n chelseas-plate
+```
+
+## Vicinity setup
+
+Vicinity is managed by Flux in `flux/vicinity` and is exposed through Traefik at `https://vicinity.webguru.ca`.
+
+Before Flux reconciles the manifests, create DNS for `vicinity.webguru.ca` pointing at the same public route used by the Traefik/MetalLB endpoint for `10.88.111.240`.
+
+Build and publish the image after changing the app:
+
+```sh
+docker build -t ghcr.io/varun-mehrotra/vicinity:latest ./apps/vicinity
+docker push ghcr.io/varun-mehrotra/vicinity:latest
+```
+
+Create the namespace image pull secret manually:
+
+```sh
+kubectl create namespace vicinity
+
+kubectl -n vicinity create secret docker-registry ghcr-creds \
+  --docker-server=ghcr.io \
+  --docker-username="Varun-Mehrotra" \
+  --docker-password="<ghcr-token>" \
+  --docker-email="varun.mehrotra@webguru.ca"
+
+kubectl -n vicinity create secret generic vicinity-secrets \
+  --from-literal=supabase-url='https://<project-ref>.supabase.co' \
+  --from-literal=supabase-anon-key='<anon-key>' \
+  --from-literal=supabase-service-role-key='<service-role-key>'
+```
+
+Run locally:
+
+```sh
+cd apps/vicinity
+npm install
+export SUPABASE_URL='https://<project-ref>.supabase.co'
+export SUPABASE_ANON_KEY='<anon-key>'
+export SUPABASE_SERVICE_ROLE_KEY='<service-role-key>'
+npm run dev
+```
+
+Supabase schema and seed data for Vicinity live in `supabase/vicinity`:
+
+```sh
+psql "$SUPABASE_DB_URL" -f supabase/vicinity/migrations/001_schema.sql
+psql "$SUPABASE_DB_URL" -f supabase/vicinity/seed.sql
+```
+
+After Flux applies the manifests, verify the deployment:
+
+```sh
+kubectl get deploy,svc,ingress -n vicinity
+kubectl logs -n vicinity deploy/vicinity
+kubectl get ingress -n vicinity
 ```
 
 ## FreshRSS setup

@@ -4,19 +4,15 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import { MenuBrowser } from "@/components/menu-browser";
 import { RestaurantDirectory } from "@/components/restaurant-directory";
-import { getMenuItemsForRestaurant, restaurants } from "@/lib/data";
+import { getMenuItemsForRestaurantFixture, restaurants } from "@/tests/fixtures";
 
 describe("restaurant directory", () => {
-  it("renders the seeded restaurant list with links", () => {
+  it("renders the available restaurant list with links", () => {
     render(<RestaurantDirectory restaurants={restaurants} />);
 
-    expect(screen.getByRole("link", { name: /tim hortons/i })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /mcdonald's canada/i })).toHaveAttribute(
       "href",
-      "/restaurants/tim-hortons",
-    );
-    expect(screen.getByRole("link", { name: /new york fries/i })).toHaveAttribute(
-      "href",
-      "/restaurants/new-york-fries",
+      "/restaurants/mcdonalds-canada",
     );
   });
 });
@@ -24,33 +20,33 @@ describe("restaurant directory", () => {
 describe("menu browser", () => {
   it("updates results when a user searches", async () => {
     const user = userEvent.setup();
-    const restaurant = restaurants.find((entry) => entry.slug === "mary-browns");
+    const restaurant = restaurants.find((entry) => entry.slug === "mcdonalds-canada");
 
     if (!restaurant) {
-      throw new Error("Expected Mary Brown's seed data");
+      throw new Error("Expected McDonald's Canada fixture data");
     }
 
-    render(<MenuBrowser restaurant={restaurant} items={getMenuItemsForRestaurant(restaurant.id)} />);
+    render(<MenuBrowser restaurant={restaurant} items={getMenuItemsForRestaurantFixture(restaurant.id)} />);
 
-    await user.type(screen.getByRole("searchbox", { name: /search mary brown's menu/i }), "wrap");
+    await user.type(screen.getByRole("searchbox", { name: /search mcdonald/i }), "cone");
 
     expect(screen.getByRole("heading", { name: /1 dish available at a glance/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /spicy chicken wrap/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /vanilla cone/i })).toBeInTheDocument();
   });
 
   it("shows an empty state when filters remove every dish", async () => {
     const user = userEvent.setup();
-    const restaurant = restaurants.find((entry) => entry.slug === "new-york-fries");
+    const restaurant = restaurants.find((entry) => entry.slug === "mcdonalds-canada");
 
     if (!restaurant) {
-      throw new Error("Expected New York Fries seed data");
+      throw new Error("Expected McDonald's Canada fixture data");
     }
 
-    render(<MenuBrowser restaurant={restaurant} items={getMenuItemsForRestaurant(restaurant.id)} />);
+    render(<MenuBrowser restaurant={restaurant} items={getMenuItemsForRestaurantFixture(restaurant.id)} />);
 
     await user.click(screen.getByLabelText("milk"));
     await user.click(screen.getByLabelText("soy"));
-    await user.type(screen.getByRole("searchbox", { name: /search new york fries' menu/i }), "poutine");
+    await user.type(screen.getByRole("searchbox", { name: /search mcdonald/i }), "cone");
 
     expect(screen.getByText(/no dishes match your search and allergen filters/i)).toBeInTheDocument();
   });

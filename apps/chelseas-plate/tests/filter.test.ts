@@ -1,43 +1,48 @@
 import { describe, expect, it } from "vitest";
-import { allergenOptions, menuItems, restaurants } from "@/lib/data";
+import { allAllergens, menuItems, restaurants } from "@/tests/fixtures";
 import { filterMenuItems } from "@/lib/filter";
 
 describe("menu filtering", () => {
   it("filters by partial search text", () => {
-    const harveysItems = menuItems.filter((item) => item.restaurantId === "harveys");
+    const mcdonaldsItems = menuItems.filter((item) => item.restaurantId === "mcdonalds-canada");
 
-    const results = filterMenuItems(harveysItems, {
-      query: "lettuce",
+    const results = filterMenuItems(mcdonaldsItems, {
+      query: "desserts",
       excludedAllergens: [],
     });
 
-    expect(results.map((item) => item.name)).toEqual(["Veggie Burger Lettuce Wrap"]);
+    expect(results.map((item) => item.name)).toEqual(["Vanilla Cone"]);
   });
 
   it("excludes dishes with one allergen", () => {
-    const timsItems = menuItems.filter((item) => item.restaurantId === "tim-hortons");
+    const mcdonaldsItems = menuItems.filter((item) => item.restaurantId === "mcdonalds-canada");
 
-    const results = filterMenuItems(timsItems, {
+    const results = filterMenuItems(mcdonaldsItems, {
       query: "",
-      excludedAllergens: ["gluten"],
+      excludedAllergens: ["fish"],
     });
 
-    expect(results.map((item) => item.name)).toEqual(["Garden Salad"]);
+    expect(results.map((item) => item.name)).toEqual([
+      "Big Mac",
+      "Egg McMuffin",
+      "Small French Fries",
+      "Vanilla Cone",
+    ]);
   });
 
   it("excludes dishes with multiple allergens", () => {
-    const awItems = menuItems.filter((item) => item.restaurantId === "a-and-w-canada");
+    const mcdonaldsItems = menuItems.filter((item) => item.restaurantId === "mcdonalds-canada");
 
-    const results = filterMenuItems(awItems, {
+    const results = filterMenuItems(mcdonaldsItems, {
       query: "",
-      excludedAllergens: ["eggs", "soy"],
+      excludedAllergens: ["milk", "soy"],
     });
 
-    expect(results.map((item) => item.name)).toEqual(["Onion Rings"]);
+    expect(results.map((item) => item.name)).toEqual(["Small French Fries"]);
   });
 });
 
-describe("seeded data integrity", () => {
+describe("fixture data integrity", () => {
   it("assigns every menu item to a known restaurant", () => {
     const restaurantIds = new Set(restaurants.map((restaurant) => restaurant.id));
 
@@ -45,7 +50,7 @@ describe("seeded data integrity", () => {
   });
 
   it("keeps allergen values inside the shared vocabulary", () => {
-    const allergenSet = new Set(allergenOptions);
+    const allergenSet = new Set(allAllergens);
 
     expect(menuItems.every((item) => item.allergens.every((allergen) => allergenSet.has(allergen)))).toBe(true);
   });
