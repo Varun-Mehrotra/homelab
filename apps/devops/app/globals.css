@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-geist), sans-serif;
+  --font-heading: var(--font-manrope), sans-serif;
+  --color-page: #f8fafc;
+  --color-panel: #ffffff;
+  --color-panel-soft: #f8fafc;
+  --color-ink: #0f172a;
+  --color-muted: #475569;
+  --color-accent: #2563eb;
+  --color-border: #e2e8f0;
+}
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 1)),
+    repeating-linear-gradient(
+      90deg,
+      rgba(148, 163, 184, 0.08) 0,
+      rgba(148, 163, 184, 0.08) 1px,
+      transparent 1px,
+      transparent 96px
+    );
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  font-family: var(--font-geist), sans-serif;
+  color: var(--color-ink);
+  background:
+    radial-gradient(circle at top, rgba(37, 99, 235, 0.06), transparent 26%),
+    linear-gradient(180deg, rgba(248, 250, 252, 0.9), rgba(248, 250, 252, 1));
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-manrope), sans-serif;
+}
+
+a {
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(37, 99, 235, 0.16);
+}
