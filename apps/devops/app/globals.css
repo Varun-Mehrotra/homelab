@@ -58,3 +58,96 @@ a {
 ::selection {
   background: rgba(37, 99, 235, 0.16);
 }
+
+.hero-section {
+  position: relative;
+}
+
+.hero-section::before {
+  content: "";
+  position: absolute;
+  inset: 2.5rem 1.25rem auto auto;
+  width: min(28rem, 42vw);
+  height: 14rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(37, 99, 235, 0.1), rgba(37, 99, 235, 0));
+  filter: blur(10px);
+  animation: drift-glow 12s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.hero-ambient {
+  animation: ambient-shift 14s ease-in-out infinite;
+}
+
+.hero-grid-glow {
+  animation: pulse-glow 9s ease-in-out infinite;
+}
+
+.hero-chip {
+  animation: chip-settle 0.7s ease-out both;
+}
+
+.hero-chip:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.hero-chip:nth-child(3) {
+  animation-delay: 0.16s;
+}
+
+@keyframes drift-glow {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 0.75;
+  }
+  50% {
+    transform: translate3d(-10px, 12px, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes ambient-shift {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.85;
+  }
+  50% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    transform: scale(0.96);
+    opacity: 0.4;
+  }
+  50% {
+    transform: scale(1.04);
+    opacity: 0.8;
+  }
+}
+
+@keyframes chip-settle {
+  0% {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-section::before,
+  .hero-ambient,
+  .hero-grid-glow,
+  .hero-chip {
+    animation: none;
+  }
+}

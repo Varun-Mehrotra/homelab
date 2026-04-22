@@ -13,19 +13,13 @@ import {
   serviceCards,
 } from "@/lib/site";
 
-const supportPoints = [
-  "Reduce repetitive ops work",
-  "Improve self-service for engineers",
-  "Turn internal knowledge into usable tooling",
-];
-
 export default function HomePage() {
   return (
     <div id="top" className="min-h-screen">
       <SiteHeader />
 
       <main>
-        <section className="mx-auto grid w-full max-w-6xl gap-12 px-5 py-16 sm:px-6 lg:grid-cols-12 lg:gap-10 lg:px-8 lg:py-24">
+        <section className="hero-section mx-auto grid w-full max-w-6xl gap-14 px-5 py-18 sm:px-6 lg:grid-cols-12 lg:gap-12 lg:px-8 lg:py-28">
           <Reveal className="lg:col-span-6 lg:pr-4">
             <p className="text-sm font-semibold uppercase tracking-[0.24em] text-blue-700">AI-assisted internal tooling</p>
             <h1 className="mt-5 max-w-xl text-balance font-heading text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl lg:text-[3.6rem] lg:leading-[1.02]">
@@ -50,20 +44,9 @@ export default function HomePage() {
                 See example use cases
               </a>
             </div>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              {supportPoints.map((point) => (
-                <span
-                  key={point}
-                  className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-[0_8px_24px_rgba(15,23,42,0.04)]"
-                >
-                  {point}
-                </span>
-              ))}
-            </div>
           </Reveal>
 
-          <div className="lg:col-span-6 lg:pl-4">
+          <div className="lg:col-span-6 lg:pl-6">
             <HeroVisual />
           </div>
         </section>
@@ -245,9 +228,6 @@ export default function HomePage() {
               </a>
               <a href={SITE_CONFIG.linkedinHref} className="transition hover:text-white">
                 LinkedIn
-              </a>
-              <a href={SITE_CONFIG.githubHref} className="transition hover:text-white">
-                GitHub
               </a>
             </div>
           </Reveal>

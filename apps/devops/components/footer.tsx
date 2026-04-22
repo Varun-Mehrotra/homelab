@@ -16,9 +16,6 @@ export function Footer() {
           <a className="transition hover:text-slate-950" href={SITE_CONFIG.linkedinHref}>
             LinkedIn
           </a>
-          <a className="transition hover:text-slate-950" href={SITE_CONFIG.githubHref}>
-            GitHub
-          </a>
           <span>© 2026 {SITE_CONFIG.brandName}</span>
         </div>
       </div>

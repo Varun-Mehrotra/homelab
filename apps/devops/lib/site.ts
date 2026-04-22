@@ -6,7 +6,6 @@ export const SITE_CONFIG = {
   primaryCtaHref: "https://calendly.com/webguru-ca/webguru-ai-enablement-intro-call",
   secondaryCtaLabel: "Explore use cases",
   secondaryCtaHref: "#use-cases",
-  githubHref: "https://github.com/",
   linkedinHref: "https://www.linkedin.com/company/webguru-canada",
 } as const;
 
