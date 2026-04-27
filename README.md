@@ -149,6 +149,7 @@ Flux manifests are organized by namespace under `flux/<namespace>/`.
 
 Current managed namespaces:
 - `flux-system`
+- `devops`
 - `chelseas-plate`
 - `default`
 - `kube-system`
@@ -163,6 +164,7 @@ Current managed namespaces:
 Secrets are still managed manually in this repo for now and must exist before Flux reconciliation can fully succeed for app workloads.
 
 Required secrets:
+- `devops/ghcr-creds`
 - `chelseas-plate/ghcr-creds`
 - `chelseas-plate/chelseas-plate-secrets`
 - `default/ghcr-creds`
@@ -175,11 +177,44 @@ Required secrets:
 
 Expected keys:
 - `ghcr-creds`: docker registry auth for `ghcr.io`
+- `devops-secrets` (optional): `ga-measurement-id`
 - `chelseas-plate-secrets`: `supabase-url`, `supabase-anon-key`, `supabase-service-role-key`
 - `vicinity-secrets`: `supabase-url`, `supabase-anon-key`, `supabase-service-role-key`
 - `freshrss-bootstrap`: `FRESHRSS_INSTALL`, `FRESHRSS_USER`
 - `ntfy-auth`: `NTFY_AUTH_USERS`, `NTFY_AUTH_ACCESS`, `NTFY_AUTH_TOKENS`
 - `osrs-recommender-secrets`: `NTFY_TOKEN`
+
+## DevOps site setup
+
+The DevOps marketing site is managed by Flux in `flux/devops` and is exposed through Traefik at `https://devops.webguru.ca`.
+
+Analytics is optional and uses a GA4 measurement ID from the public env var `NEXT_PUBLIC_GA_MEASUREMENT_ID`.
+
+For local development:
+
+```sh
+cd apps/devops
+export NEXT_PUBLIC_GA_MEASUREMENT_ID='G-XXXXXXXXXX'
+npm install
+npm run dev
+```
+
+For the cluster deployment, provide the measurement ID through an optional secret:
+
+```sh
+kubectl create namespace devops
+
+kubectl -n devops create secret docker-registry ghcr-creds \
+  --docker-server=ghcr.io \
+  --docker-username="Varun-Mehrotra" \
+  --docker-password="<ghcr-token>" \
+  --docker-email="varun.mehrotra@webguru.ca"
+
+kubectl -n devops create secret generic devops-secrets \
+  --from-literal=ga-measurement-id='G-XXXXXXXXXX'
+```
+
+If `ga-measurement-id` is omitted, the site still runs and analytics remains disabled.
 
 ## Chelsea's Plate setup
 

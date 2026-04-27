@@ -33,13 +33,13 @@ export default function HomePage() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <a
                 href={SITE_CONFIG.primaryCtaHref}
-                className="inline-flex items-center justify-center rounded-full bg-slate-950 px-6 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800"
+                className="cta-button cta-button-primary px-6"
               >
                 {SITE_CONFIG.primaryCtaLabel}
               </a>
               <a
                 href={SITE_CONFIG.secondaryCtaHref}
-                className="inline-flex items-center justify-center rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-900 transition hover:-translate-y-0.5 hover:border-slate-400"
+                className="cta-button cta-button-secondary px-6"
               >
                 See example use cases
               </a>
@@ -201,7 +201,7 @@ export default function HomePage() {
 
         <section id="contact" className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-6 lg:px-8 lg:py-24">
           <Reveal className="rounded-[2rem] border border-slate-200 bg-slate-950 px-8 py-10 text-white shadow-[0_24px_70px_rgba(15,23,42,0.16)] sm:px-10">
-            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-blue-300">Final CTA</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.22em] text-blue-300">Reach out</p>
             <h2 className="mt-4 max-w-3xl text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
               Find the workflow that should not still be manual
             </h2>
@@ -213,7 +213,7 @@ export default function HomePage() {
             <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center">
               <a
                 href={SITE_CONFIG.primaryCtaHref}
-                className="inline-flex items-center justify-center rounded-full bg-white px-6 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-slate-100"
+                className="cta-button bg-white px-6 text-slate-950 shadow-[0_14px_28px_rgba(15,23,42,0.16)] hover:bg-slate-100"
               >
                 {SITE_CONFIG.primaryCtaLabel}
               </a>

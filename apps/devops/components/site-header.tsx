@@ -26,12 +26,26 @@ export function SiteHeader() {
           ))}
         </nav>
 
-        <a
-          href={SITE_CONFIG.primaryCtaHref}
-          className="inline-flex items-center justify-center rounded-full bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-slate-800"
-        >
-          Book a Call
-        </a>
+        <div className="flex items-center gap-5">
+          <a
+            href={SITE_CONFIG.linkedinHref}
+            aria-label="LinkedIn"
+            target="_blank"
+            rel="noreferrer"
+            className="hidden items-center justify-center bg-transparent text-[#2563A6] transition hover:text-[#0A66C2] md:inline-flex"
+          >
+            <span className="inline-flex items-center justify-center bg-transparent text-[0.9rem] font-extrabold leading-none tracking-[-0.06em]">
+              in
+            </span>
+          </a>
+
+          <a
+            href={SITE_CONFIG.primaryCtaHref}
+            className="cta-button cta-button-primary px-5"
+          >
+            Book a Call
+          </a>
+        </div>
       </div>
     </header>
   );

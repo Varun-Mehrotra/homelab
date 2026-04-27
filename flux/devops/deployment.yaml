@@ -30,6 +30,12 @@ spec:
               value: "3000"
             - name: NEXT_TELEMETRY_DISABLED
               value: "1"
+            - name: NEXT_PUBLIC_GA_MEASUREMENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: devops-secrets
+                  key: ga-measurement-id
+                  optional: true
           readinessProbe:
             httpGet:
               path: /

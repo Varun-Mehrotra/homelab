@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { GoogleAnalytics } from "@/components/google-analytics";
 import { Geist, Manrope } from "next/font/google";
+import { Suspense } from "react";
 import "./globals.css";
 
 const geist = Geist({
@@ -21,7 +23,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${geist.variable} ${manrope.variable} bg-stone-50 text-slate-950 antialiased`}>{children}</body>
+      <body className={`${geist.variable} ${manrope.variable} bg-stone-50 text-slate-950 antialiased`}>
+        <Suspense fallback={null}>
+          <GoogleAnalytics />
+        </Suspense>
+        {children}
+      </body>
     </html>
   );
 }
