@@ -11,9 +11,11 @@ declare global {
   }
 }
 
-const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+type GoogleAnalyticsProps = {
+  measurementId?: string;
+};
 
-export function GoogleAnalytics() {
+export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isFirstRender = useRef(true);

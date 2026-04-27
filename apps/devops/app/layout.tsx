@@ -1,8 +1,11 @@
+import { ApolloTracker } from "@/components/apollo-tracker";
 import type { Metadata } from "next";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { Geist, Manrope } from "next/font/google";
 import { Suspense } from "react";
 import "./globals.css";
+
+export const dynamic = "force-dynamic";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -21,11 +24,14 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+
   return (
     <html lang="en" className="scroll-smooth">
       <body className={`${geist.variable} ${manrope.variable} bg-stone-50 text-slate-950 antialiased`}>
+        <ApolloTracker />
         <Suspense fallback={null}>
-          <GoogleAnalytics />
+          <GoogleAnalytics measurementId={measurementId} />
         </Suspense>
         {children}
       </body>
