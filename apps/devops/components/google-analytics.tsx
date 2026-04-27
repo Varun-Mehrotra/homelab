@@ -20,16 +20,26 @@ export function GoogleAnalytics() {
 
   useEffect(() => {
     if (!measurementId) {
+      console.info("[ga4] NEXT_PUBLIC_GA_MEASUREMENT_ID is not set; analytics disabled.");
       return;
     }
 
     if (isFirstRender.current) {
       isFirstRender.current = false;
+      console.info("[ga4] Analytics initialized for", measurementId);
       return;
     }
 
     const query = searchParams.toString();
     const pagePath = query ? `${pathname}?${query}` : pathname;
+
+    console.info("[ga4] Sending page_view", {
+      measurementId,
+      pagePath,
+      pageLocation: window.location.href,
+      pageTitle: document.title,
+      gtagReady: typeof window.gtag === "function",
+    });
 
     window.gtag?.("event", "page_view", {
       page_path: pagePath,
@@ -45,7 +55,16 @@ export function GoogleAnalytics() {
 
   return (
     <>
-      <Script src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`} strategy="afterInteractive" />
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${measurementId}`}
+        strategy="afterInteractive"
+        onLoad={() => {
+          console.info("[ga4] Loaded gtag.js for", measurementId);
+        }}
+        onError={() => {
+          console.error("[ga4] Failed to load gtag.js for", measurementId);
+        }}
+      />
       <Script id="google-analytics" strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
