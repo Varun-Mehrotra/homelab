@@ -134,20 +134,19 @@ Observed pattern for Next.js apps:
 - run a Node 22 install/build step
 - build and publish Docker images to GHCR on pushes to `main`
 
-### Multi-Arch Requirement
+### Image Platform Requirement
 
-Because the cluster nodes are `arm64`, Docker workflows for deployable web apps should publish at least:
+Because the cluster nodes are `arm64`, deployable images must include:
 
-- `linux/amd64`
 - `linux/arm64`
 
-This is already handled in:
+For `devops`, the GitHub workflow now publishes only:
 
-- `.github/workflows/devops.yml`
+- `linux/arm64`
 
 Note:
 
-- `devops` originally failed with `no match for platform in manifest` until multi-arch output was added.
+- `devops` originally failed with `no match for platform in manifest` until `arm64` image output was added.
 
 ## App Notes
 
@@ -320,7 +319,7 @@ If `devops` fails to pull with:
 
 then the likely fix is:
 
-- rebuild and publish a multi-arch image including `linux/arm64`
+- rebuild and publish an image including `linux/arm64`
 
 This is not a Kubernetes API version compatibility problem.
 
@@ -335,4 +334,4 @@ This is not a Kubernetes API version compatibility problem.
   - add `flux/<name>`
   - register namespace in `flux/kustomization.yaml`
   - add a GitHub workflow for CI/CD
-  - ensure multi-arch Docker output if the app will run on the Raspberry Pi cluster
+  - ensure Docker output includes `linux/arm64` if the app will run on the Raspberry Pi cluster
