@@ -1,16 +1,13 @@
 import { type MenuItem, type Restaurant } from "@/lib/data";
 
 export const allAllergens = [
-  "barley",
   "egg",
-  "fish",
-  "milk",
+  "garlic",
+  "msg",
   "mustard",
-  "oat",
+  "onion",
   "sesame seeds",
   "soy",
-  "sulphites",
-  "tree nuts",
   "wheat",
 ];
 
@@ -19,68 +16,115 @@ export const restaurants: Restaurant[] = [
     id: "mcdonalds-canada",
     name: "McDonald's Canada",
     slug: "mcdonalds-canada",
-    cuisineHint: "Burgers, breakfast, chicken, beverages, desserts, and more",
-    description: "Current McDonald's Canada menu data sourced from live product pages and ingredient details.",
+    cuisineHint: "Burgers and chicken sandwiches",
+    description: "A small curated McDonald's Canada menu used while items are being added incrementally.",
   },
 ];
 
 export const menuItems: MenuItem[] = [
   {
-    id: "big-mac-sandwich",
+    id: "hamburger",
     restaurantId: "mcdonalds-canada",
-    name: "Big Mac",
+    name: "Hamburger",
     category: "Beef",
     description:
-      "Nothing compares to two 100% Canadian beef patties, special sauce, crisp lettuce, processed cheese, pickles and onions on a toasted sesame seed bun.",
-    ingredients: [
-      "beef patty",
-      "big mac bun",
-      "big mac sauce",
-      "grill seasoning",
-      "lettuce",
-      "onions (dehydrated)",
-      "pickle slices",
-      "processed cheese",
+      "The comforting taste of the juicy and delicious 100% Canadian beef burger, topped with tangy pickles, ketchup, mustard and the sweet bite of onion, all on a freshly toasted bun. Just like you remember.",
+    components: [
+      {
+        id: "hamburger-regular-bun",
+        name: "Regular Bun",
+        ingredients:
+          "Enriched wheat flour, Water, Sugars (sugar, corn dextrose, corn maltodextrin), Yeast, Vegetable oil (canola and/or soy), Vegetable proteins (pea, potato, faba bean), Sunflower oil, Corn starch, Salt, May contain and or all of the following in varying proportions: Wheat gluten, Dough conditioners (monoglycerides, datem, ascorbic acid, enzymes), Vinegar.",
+        containsAllergens: ["wheat"],
+        mayContainAllergens: ["sesame seeds"],
+      },
+      {
+        id: "hamburger-beef-patty",
+        name: "Beef Patty",
+        ingredients: "100% pure beef.",
+        containsAllergens: [],
+        mayContainAllergens: [],
+      },
+      {
+        id: "hamburger-ketchup",
+        name: "Ketchup",
+        ingredients: "Tomato paste, Sugars (sugar/glucose-fructose), Water, Vinegar, Salt, Natural flavour.",
+        containsAllergens: [],
+        mayContainAllergens: [],
+      },
+      {
+        id: "hamburger-pickle-slices",
+        name: "Pickle Slices",
+        ingredients:
+          "Cucumbers, Water, Distilled vinegar, Salt, Calcium chloride, Potassium sorbate (preservative), Aluminum sulphate, Natural flavour (plant source), Polysorbate 80, Extractives of tumeric (colour).",
+        containsAllergens: [],
+        mayContainAllergens: [],
+      },
+      {
+        id: "hamburger-onions-dehydrated",
+        name: "Onions (dehydrated)",
+        ingredients: "100% onions.",
+        containsAllergens: [],
+        mayContainAllergens: [],
+      },
+      {
+        id: "hamburger-mustard",
+        name: "Mustard",
+        ingredients: "Water, Vinegar, Mustard seed, Salt, Turmeric, Natural flavour (plant source), Spice.",
+        containsAllergens: ["mustard"],
+        mayContainAllergens: [],
+      },
+      {
+        id: "hamburger-grill-seasoning",
+        name: "Grill Seasoning",
+        ingredients: "Salt, Spice (pepper), Sunflower oil (used as a processing aid).",
+        containsAllergens: [],
+        mayContainAllergens: [],
+      },
     ],
-    allergens: ["egg", "milk", "mustard", "sesame seeds", "soy", "wheat"],
+    allergens: ["mustard", "onion", "sesame seeds", "wheat"],
   },
   {
-    id: "egg-mcmuffin",
+    id: "mcchicken",
     restaurantId: "mcdonalds-canada",
-    name: "Egg McMuffin",
-    category: "Breakfast",
+    name: "McChicken",
+    category: "Chicken",
     description:
-      "A freshly cracked Canada Grade A egg, Canadian bacon, melty processed cheddar cheese and butter on a toasted English muffin.",
-    ingredients: ["butter", "canadian bacon", "egg", "english muffin", "processed cheese"],
-    allergens: ["barley", "egg", "milk", "soy", "wheat"],
-  },
-  {
-    id: "filet-o-fish",
-    restaurantId: "mcdonalds-canada",
-    name: "Filet-O-Fish",
-    category: "Sandwiches & Wraps",
-    description:
-      "Tender fish topped with tartar sauce and half a slice of processed cheddar cheese on a soft steamed bun.",
-    ingredients: ["filet-o-fish bun", "fish portion", "processed cheese", "tartar sauce"],
-    allergens: ["egg", "fish", "milk", "soy", "wheat"],
-  },
-  {
-    id: "small-french-fries",
-    restaurantId: "mcdonalds-canada",
-    name: "Small French Fries",
-    category: "Snacks & Sides",
-    description: "World famous fries made with Canadian potatoes and finished with just the right amount of salt.",
-    ingredients: ["canola blend oil", "potatoes", "salt"],
-    allergens: [],
-  },
-  {
-    id: "cone-vanilla",
-    restaurantId: "mcdonalds-canada",
-    name: "Vanilla Cone",
-    category: "Desserts & Shakes",
-    description: "Creamy vanilla soft serve in a crisp cone for a simple sweet finish.",
-    ingredients: ["large cone", "vanilla ice milk"],
-    allergens: ["milk", "soy", "wheat"],
+      "Breaded seasoned chicken and crisp lettuce, topped with our Mayo-Style Sauce. Some ingredients are just meant to be together.",
+    components: [
+      {
+        id: "mcchicken-portion",
+        name: "McChicken Portion",
+        ingredients:
+          "Chicken, Wheat flour, Water, Chicken skin, Toasted wheat crumbs with spice extractives, Corn starch, Modified corn starch, Salt, Yellow corn flour, Canola oil, Spices, Baking soda, Sodium aluminum phosphate, Potassium chloride, Flavour (hydrolyzed corn, soy and wheat gluten protein, flavour, disodium inosinate, disodium guanylate), Wheat starch. Cooked in vegetable oil (high oleic low linoleic canola oil and/or canola oil, corn oil, soybean oil, hydrogenated soybean oil, citric acid, dimethylpolysiloxane).",
+        containsAllergens: ["soy", "wheat"],
+        mayContainAllergens: [],
+      },
+      {
+        id: "mcchicken-sesame-seed-bun",
+        name: "Sesame Seed Bun",
+        ingredients:
+          "Enriched wheat flour, Water, Sugars (sugar, corn dextrose, corn maltodextrin), Yeast, Vegetable oil (canola and/or soy), Sesame seeds, Vegetable proteins (pea, potato, fava bean), Sunflower oil, Corn starch, Salt, May contain any or all of the following in varying proportions: Wheat gluten, Guar gum, Dough conditioner (monoglycerides, DATEM, ascorbic acid, enzymes), Tricalcium phosphate, Natural flavour, Corn starch, Soybean oil, Vinegar.",
+        containsAllergens: ["sesame seeds", "wheat"],
+        mayContainAllergens: [],
+      },
+      {
+        id: "mcchicken-lettuce",
+        name: "Lettuce",
+        ingredients: "Shredded iceberg lettuce.",
+        containsAllergens: [],
+        mayContainAllergens: [],
+      },
+      {
+        id: "mcchicken-mayonnaise-style-sauce",
+        name: "Mayonnaise-Style Sauce",
+        ingredients:
+          "Soybean oil, Water, Liquid egg yolk, Vinegar, Sugar, Salt, Mustard seeds, Mustard bran, Xanthan gum, Potassium sorbate, Calcium disodium EDTA.",
+        containsAllergens: ["egg", "mustard"],
+        mayContainAllergens: [],
+      },
+    ],
+    allergens: ["egg", "mustard", "sesame seeds", "soy", "wheat"],
   },
 ];
 

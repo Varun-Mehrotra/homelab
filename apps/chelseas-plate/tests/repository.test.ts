@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { deriveAllergens, deriveIngredients, mapMenuItem, mapRestaurant } from "@/lib/repository";
+import { describe, expect, it, vi } from "vitest";
+import { deriveAllergens, deriveComponents, getAllergens, mapMenuItem, mapRestaurant } from "@/lib/repository";
+import * as supabaseModule from "@/lib/supabase";
 
 describe("repository shaping", () => {
   it("maps restaurant rows into UI-facing restaurant data", () => {
@@ -20,53 +21,96 @@ describe("repository shaping", () => {
     });
   });
 
-  it("derives sorted ingredient and allergen lists from nested ingredient joins", () => {
+  it("derives components and allergen lists from nested component joins", () => {
     const row = {
-      id: "big-mac-sandwich",
+      id: "hamburger",
       restaurant_id: "mcdonalds-canada",
-      name: "Big Mac",
+      name: "Hamburger",
       category: "Beef",
-      description: "Two beef patties with Big Mac sauce, cheese, pickles, and lettuce on a sesame bun.",
-      menu_item_ingredients: [
+      description: "A classic beef burger with pickles, ketchup, mustard, onions, and a toasted bun.",
+      item_components: [
         {
-          ingredient: {
-            id: "processed-cheese",
-            name: "processed cheese",
-            ingredient_allergens: [{ allergen: { name: "milk" } }, { allergen: { name: "soy" } }],
-          },
+          id: "hamburger-regular-bun",
+          name: "Regular Bun",
+          ingredient_statement: "Enriched wheat flour, Water, Sugars, Yeast.",
+          sort_order: 1,
+          item_component_allergens: [
+            { relation_type: "contains", allergen: { name: "wheat" } },
+            { relation_type: "may_contain", allergen: { name: "sesame seeds" } },
+          ],
         },
         {
-          ingredient: {
-            id: "big-mac-sauce",
-            name: "big mac sauce",
-            ingredient_allergens: [
-              { allergen: { name: "egg" } },
-              { allergen: { name: "mustard" } },
-              { allergen: { name: "soy" } },
-              { allergen: { name: "wheat" } },
-            ],
-          },
-        },
-        {
-          ingredient: {
-            id: "big-mac-bun",
-            name: "big mac bun",
-            ingredient_allergens: [{ allergen: { name: "sesame seeds" } }, { allergen: { name: "wheat" } }],
-          },
+          id: "hamburger-mustard",
+          name: "Mustard",
+          ingredient_statement: "Water, Vinegar, Mustard seed, Onion powder, Salt.",
+          sort_order: 2,
+          item_component_allergens: [{ relation_type: "contains", allergen: { name: "mustard" } }],
         },
       ],
     };
 
-    expect(deriveIngredients(row)).toEqual(["big mac bun", "big mac sauce", "processed cheese"]);
-    expect(deriveAllergens(row)).toEqual(["egg", "milk", "mustard", "sesame seeds", "soy", "wheat"]);
+    expect(deriveComponents(row)).toEqual([
+      {
+        id: "hamburger-regular-bun",
+        name: "Regular Bun",
+        ingredients: "Enriched wheat flour, Water, Sugars, Yeast.",
+        containsAllergens: ["wheat"],
+        mayContainAllergens: ["sesame seeds"],
+      },
+      {
+        id: "hamburger-mustard",
+        name: "Mustard",
+        ingredients: "Water, Vinegar, Mustard seed, Onion powder, Salt.",
+        containsAllergens: ["mustard", "onion"],
+        mayContainAllergens: [],
+      },
+    ]);
+    expect(deriveAllergens(row)).toEqual(["mustard", "onion", "sesame seeds", "wheat"]);
     expect(mapMenuItem(row)).toEqual({
-      id: "big-mac-sandwich",
+      id: "hamburger",
       restaurantId: "mcdonalds-canada",
-      name: "Big Mac",
+      name: "Hamburger",
       category: "Beef",
-      description: "Two beef patties with Big Mac sauce, cheese, pickles, and lettuce on a sesame bun.",
-      ingredients: ["big mac bun", "big mac sauce", "processed cheese"],
-      allergens: ["egg", "milk", "mustard", "sesame seeds", "soy", "wheat"],
+      description: "A classic beef burger with pickles, ketchup, mustard, onions, and a toasted bun.",
+      components: [
+        {
+          id: "hamburger-regular-bun",
+          name: "Regular Bun",
+          ingredients: "Enriched wheat flour, Water, Sugars, Yeast.",
+          containsAllergens: ["wheat"],
+          mayContainAllergens: ["sesame seeds"],
+        },
+        {
+          id: "hamburger-mustard",
+          name: "Mustard",
+          ingredients: "Water, Vinegar, Mustard seed, Onion powder, Salt.",
+          containsAllergens: ["mustard", "onion"],
+          mayContainAllergens: [],
+        },
+      ],
+      allergens: ["mustard", "onion", "sesame seeds", "wheat"],
     });
+  });
+
+  it("merges database allergens with the always-on selector extras", async () => {
+    const fromSpy = vi.spyOn(supabaseModule, "getSupabaseServerClient").mockReturnValue({
+      from() {
+        return {
+          select() {
+            return {
+              order() {
+                return Promise.resolve({
+                  data: [{ name: "egg" }, { name: "wheat" }],
+                  error: null,
+                });
+              },
+            };
+          },
+        };
+      },
+    } as never);
+
+    await expect(getAllergens()).resolves.toEqual(["egg", "garlic", "msg", "onion", "wheat"]);
+    fromSpy.mockRestore();
   });
 });

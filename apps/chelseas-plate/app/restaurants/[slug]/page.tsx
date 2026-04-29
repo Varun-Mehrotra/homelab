@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MenuBrowser } from "@/components/menu-browser";
-import { getMenuItemsForRestaurant, getRestaurantBySlug } from "@/lib/repository";
+import { getAllergens, getMenuItemsForRestaurant, getRestaurantBySlug } from "@/lib/repository";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,7 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
     notFound();
   }
 
-  const items = await getMenuItemsForRestaurant(restaurant.id);
+  const [allergens, items] = await Promise.all([getAllergens(), getMenuItemsForRestaurant(restaurant.id)]);
 
   return (
     <main>
@@ -33,7 +33,7 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
         <div className="double-rule" />
       </div>
 
-      <MenuBrowser items={items} />
+      <MenuBrowser items={items} availableAllergens={allergens} />
     </main>
   );
 }

@@ -17,12 +17,12 @@ export default async function HomePage() {
           Eat <em>without</em> the worry.
         </h1>
         <p className="cover-lede">
-          A pocket guide to chain restaurant menus, filtered by the ingredients your gut would rather skip.
+          A pocket guide to a curated chain restaurant menu, filtered by the ingredients your gut would rather skip.
         </p>
         <div className="cover-deck">
           <div>
             <strong>Pick a chain.</strong>
-            Browse the index below. Each entry runs to the full menu, course by course.
+            Browse the index below. Each entry runs to the current curated menu.
           </div>
           <div>
             <strong>Tell us what to skip.</strong>

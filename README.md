@@ -257,17 +257,12 @@ export SUPABASE_SERVICE_ROLE_KEY='<service-role-key>'
 npm run dev
 ```
 
-Supabase schema and the live McDonald's Canada seed for Chelsea's Plate live in `supabase/chelseas-plate`:
+Supabase schema and the current curated McDonald's Canada seed for Chelsea's Plate live in `supabase/chelseas-plate`:
 
 ```sh
 psql "$SUPABASE_DB_URL" -f supabase/chelseas-plate/migrations/001_schema.sql
+psql "$SUPABASE_DB_URL" -f supabase/chelseas-plate/migrations/002_item_components.sql
 psql "$SUPABASE_DB_URL" -f supabase/chelseas-plate/seed.sql
-```
-
-Regenerate that seed from the current McDonald's Canada menu pages with:
-
-```sh
-python3 supabase/chelseas-plate/scripts/generate_mcdonalds_seed.py
 ```
 
 After Flux applies the manifests, verify the deployment:

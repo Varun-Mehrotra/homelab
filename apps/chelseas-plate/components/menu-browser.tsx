@@ -5,6 +5,7 @@ import { type MenuItem } from "@/lib/data";
 
 type MenuBrowserProps = {
   items: MenuItem[];
+  availableAllergens?: string[];
 };
 
 type Group = {
@@ -34,15 +35,19 @@ function splitItems(items: MenuItem[], excluded: string[], query: string) {
   return { safe, skip };
 }
 
-export function MenuBrowser({ items }: MenuBrowserProps) {
+export function MenuBrowser({ items, availableAllergens: availableAllergensProp }: MenuBrowserProps) {
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [activeSection, setActiveSection] = useState("safe");
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
-  const availableAllergens = useMemo(
-    () => Array.from(new Set(items.flatMap((it) => it.allergens))).sort((a, b) => a.localeCompare(b)),
-    [items],
-  );
+  const availableAllergens = useMemo(() => {
+    if (availableAllergensProp && availableAllergensProp.length > 0) {
+      return availableAllergensProp;
+    }
+
+    return Array.from(new Set(items.flatMap((it) => it.allergens))).sort((a, b) => a.localeCompare(b));
+  }, [availableAllergensProp, items]);
 
   const { safe, skip } = useMemo(
     () => splitItems(items, selectedAllergens, query),
@@ -50,12 +55,19 @@ export function MenuBrowser({ items }: MenuBrowserProps) {
   );
 
   const groups: Group[] = [{ id: "safe", name: "Safe foods", accent: "sage", items: safe }];
-  if (selectedAllergens.length > 0 && skip.length > 0) {
+  if (selectedAllergens.length > 0) {
     groups.push({ id: "skip", name: "Skip foods", accent: "rose", items: skip });
   }
 
   function toggleAllergen(a: string) {
     setSelectedAllergens((prev) => (prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]));
+  }
+
+  function toggleItem(itemId: string) {
+    setExpandedItems((prev) => ({
+      ...prev,
+      [itemId]: !prev[itemId],
+    }));
   }
 
   // Scrollspy
@@ -159,7 +171,14 @@ export function MenuBrowser({ items }: MenuBrowserProps) {
       </div>
 
       {groups.map((group) => (
-        <MenuSection key={group.id} group={group} excluded={selectedAllergens} hasExclusions={hasExclusions} />
+        <MenuSection
+          key={group.id}
+          group={group}
+          excluded={selectedAllergens}
+          expandedItems={expandedItems}
+          hasExclusions={hasExclusions}
+          onToggleItem={toggleItem}
+        />
       ))}
 
       {safe.length === 0 && skip.length === 0 && (
@@ -178,11 +197,15 @@ export function MenuBrowser({ items }: MenuBrowserProps) {
 function MenuSection({
   group,
   excluded,
+  expandedItems,
   hasExclusions,
+  onToggleItem,
 }: {
   group: Group;
   excluded: string[];
+  expandedItems: Record<string, boolean>;
   hasExclusions: boolean;
+  onToggleItem: (itemId: string) => void;
 }) {
   return (
     <div className="menu-section" id={`sec-${group.id}`}>
@@ -199,6 +222,7 @@ function MenuSection({
       {group.items.map((item) => {
         const hits = excluded.filter((exc) => item.allergens.includes(exc));
         const isSafe = hits.length === 0;
+        const canExpand = item.components.length > 3 || item.components.some((component) => component.ingredients.length > 120);
 
         return (
           <div key={item.id} className={`item ${!isSafe ? "dim" : ""}`}>
@@ -217,38 +241,58 @@ function MenuSection({
                 ) : (
                   <div className="status-line status-skip">
                     <span className="status-dot" />
-                    Skip · contains {hits.slice(0, 2).join(", ")}
+                    Skip · flagged for {hits.slice(0, 2).join(", ")}
                     {hits.length > 2 ? ` +${hits.length - 2}` : ""}
                   </div>
                 ))}
               <div className="item-desc">{item.description}</div>
             </div>
 
-            <div className="item-aside">
-              <div className="aside-h">Ingredients</div>
-              <div className="ing-list">
-                {item.ingredients.map((ing, i) => (
-                  <span key={i} className={excluded.some((exc) => ing.toLowerCase().includes(exc)) ? "ing-hit" : ""}>
-                    {ing}
-                    {i < item.ingredients.length - 1 ? " · " : ""}
-                  </span>
+            <div className={`item-aside ${expandedItems[item.id] ? "expanded" : "collapsed"}`}>
+              <div className="aside-h">Components</div>
+              <div className="item-aside-inner">
+                {item.components.map((component) => (
+                  <div key={component.id} className="component-block">
+                    <div className="item-category">{component.name}</div>
+                    <div className="ing-list" style={{ marginTop: "4px" }}>
+                      {component.ingredients}
+                    </div>
+                    {component.containsAllergens.length > 0 && (
+                      <div className="ing-list" style={{ marginTop: "6px" }}>
+                        Contains:{" "}
+                        {component.containsAllergens.map((allergen, index) => (
+                          <span key={allergen} className={excluded.includes(allergen) ? "ing-hit" : ""}>
+                            {allergen}
+                            {index < component.containsAllergens.length - 1 ? " · " : ""}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {component.mayContainAllergens.length > 0 && (
+                      <div className="ing-list" style={{ marginTop: "4px" }}>
+                        May contain:{" "}
+                        {component.mayContainAllergens.map((allergen, index) => (
+                          <span key={allergen} className={excluded.includes(allergen) ? "ing-hit" : ""}>
+                            {allergen}
+                            {index < component.mayContainAllergens.length - 1 ? " · " : ""}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
-              {item.allergens.length > 0 && (
-                <>
-                  <div className="aside-h" style={{ marginTop: "12px" }}>
-                    Allergens
-                  </div>
-                  <div className="ing-list">
-                    {item.allergens.map((a, i) => (
-                      <span key={i} className={excluded.includes(a) ? "ing-hit" : ""}>
-                        {a}
-                        {i < item.allergens.length - 1 ? " · " : ""}
-                      </span>
-                    ))}
-                  </div>
-                </>
-              )}
+              {canExpand ? (
+                <button
+                  type="button"
+                  className="expand-toggle expand-toggle-panel"
+                  aria-expanded={expandedItems[item.id] ? "true" : "false"}
+                  onClick={() => onToggleItem(item.id)}
+                >
+                  <span className={`expand-arrow ${expandedItems[item.id] ? "open" : ""}`}>▾</span>
+                  {expandedItems[item.id] ? "Show less" : "Show more"}
+                </button>
+              ) : null}
             </div>
           </div>
         );

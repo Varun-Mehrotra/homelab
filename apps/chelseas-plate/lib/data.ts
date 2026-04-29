@@ -8,12 +8,20 @@ export type Restaurant = {
   cuisineHint: string;
 };
 
+export type MenuItemComponent = {
+  id: string;
+  name: string;
+  ingredients: string;
+  containsAllergens: Allergen[];
+  mayContainAllergens: Allergen[];
+};
+
 export type MenuItem = {
   id: string;
   restaurantId: string;
   name: string;
   category: string;
   description: string;
-  ingredients: string[];
+  components: MenuItemComponent[];
   allergens: Allergen[];
 };

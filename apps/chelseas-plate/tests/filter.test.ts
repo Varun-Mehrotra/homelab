@@ -7,11 +7,11 @@ describe("menu filtering", () => {
     const mcdonaldsItems = menuItems.filter((item) => item.restaurantId === "mcdonalds-canada");
 
     const results = filterMenuItems(mcdonaldsItems, {
-      query: "desserts",
+      query: "chicken",
       excludedAllergens: [],
     });
 
-    expect(results.map((item) => item.name)).toEqual(["Vanilla Cone"]);
+    expect(results.map((item) => item.name)).toEqual(["McChicken"]);
   });
 
   it("excludes dishes with one allergen", () => {
@@ -19,15 +19,10 @@ describe("menu filtering", () => {
 
     const results = filterMenuItems(mcdonaldsItems, {
       query: "",
-      excludedAllergens: ["fish"],
+      excludedAllergens: ["egg"],
     });
 
-    expect(results.map((item) => item.name)).toEqual([
-      "Big Mac",
-      "Egg McMuffin",
-      "Small French Fries",
-      "Vanilla Cone",
-    ]);
+    expect(results.map((item) => item.name)).toEqual(["Hamburger"]);
   });
 
   it("excludes dishes with multiple allergens", () => {
@@ -35,10 +30,10 @@ describe("menu filtering", () => {
 
     const results = filterMenuItems(mcdonaldsItems, {
       query: "",
-      excludedAllergens: ["milk", "soy"],
+      excludedAllergens: ["mustard", "wheat"],
     });
 
-    expect(results.map((item) => item.name)).toEqual(["Small French Fries"]);
+    expect(results.map((item) => item.name)).toEqual([]);
   });
 });
 

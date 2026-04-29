@@ -503,6 +503,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   line-height: 1.6;
   border-left: 1px solid var(--rule);
   padding-left: 24px;
+  position: relative;
 }
 @media (max-width: 619px) {
   .item-aside {
@@ -521,6 +522,56 @@ button { font: inherit; color: inherit; cursor: pointer; }
   font-weight: 600;
 }
 .ing-list { letter-spacing: 0.02em; line-height: 1.65; }
+.item-aside-inner {
+  overflow: hidden;
+}
+.item-aside.collapsed .item-aside-inner {
+  max-height: 240px;
+}
+.item-aside.expanded .item-aside-inner {
+  max-height: none;
+}
+.component-block { margin-top: 10px; }
+.expand-toggle {
+  margin-top: 6px;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--ink-3);
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.expand-toggle-panel {
+  position: relative;
+  z-index: 1;
+}
+.expand-toggle:hover { color: var(--ink); }
+.expand-arrow {
+  display: inline-block;
+  transition: transform 180ms ease;
+}
+.expand-arrow.open { transform: rotate(180deg); }
+.item-aside.collapsed::after {
+  content: "";
+  position: absolute;
+  left: 24px;
+  right: 0;
+  bottom: 28px;
+  height: 52px;
+  background: linear-gradient(to bottom, rgba(245, 237, 220, 0), rgba(245, 237, 220, 0.98));
+  pointer-events: none;
+}
+@media (max-width: 619px) {
+  .item-aside.collapsed::after {
+    left: 0;
+  }
+}
 .ing-hit { color: var(--rose); font-weight: 600; }
 
 /* ── COLOPHON ──────────────────────────────────────────────── */
