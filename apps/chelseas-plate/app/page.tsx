@@ -1,32 +1,39 @@
+import { getRestaurants } from "@/lib/repository";
 import { RestaurantDirectory } from "@/components/restaurant-directory";
-import { getAllergens, getRestaurants } from "@/lib/repository";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [allergens, restaurants] = await Promise.all([getAllergens(), getRestaurants()]);
+  const restaurants = await getRestaurants();
 
   return (
-    <main className="page-shell">
-      <section className="hero">
-        <div className="hero-chip-row">
-          <span className="hero-chip">Live McDonald&apos;s Canada data</span>
-          <span className="hero-chip">Restaurant-first browsing</span>
-          <span className="hero-chip">Ingredient-backed allergen flags</span>
+    <main>
+      <div className="cover">
+        <div className="cover-vol">
+          <span>The Field Guide</span>
+          <span>For sensitive stomachs</span>
         </div>
-        <h1>Chelsea&apos;s Plate</h1>
-        <p>
-          Browse McDonald&apos;s Canada menu data, search specific items, and exclude allergens before you order. The
-          goal is simple: help people with food allergies see what still looks possible at a glance.
+        <h1>
+          Eat <em>without</em> the worry.
+        </h1>
+        <p className="cover-lede">
+          A pocket guide to chain restaurant menus, filtered by the ingredients your gut would rather skip.
         </p>
-        <div className="chip-row" style={{ marginTop: "20px" }}>
-          {allergens.slice(0, 6).map((allergen) => (
-            <span key={allergen} className="tag">
-              {allergen}
-            </span>
-          ))}
+        <div className="cover-deck">
+          <div>
+            <strong>Pick a chain.</strong>
+            Browse the index below. Each entry runs to the full menu, course by course.
+          </div>
+          <div>
+            <strong>Tell us what to skip.</strong>
+            Tap allergen toggles. We&apos;ll mark every item instantly.
+          </div>
+          <div>
+            <strong>Order with confidence.</strong>
+            See ingredients, know what to skip, eat without worry.
+          </div>
         </div>
-      </section>
+      </div>
 
       <RestaurantDirectory restaurants={restaurants} />
     </main>

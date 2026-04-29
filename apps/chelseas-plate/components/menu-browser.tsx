@@ -1,147 +1,258 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { type Allergen, type MenuItem, type Restaurant } from "@/lib/data";
-import { filterMenuItems, summarizeDishSafety } from "@/lib/filter";
+import React, { useMemo, useState, useEffect, useRef } from "react";
+import { type MenuItem } from "@/lib/data";
 
 type MenuBrowserProps = {
-  restaurant: Restaurant;
   items: MenuItem[];
 };
 
-export function MenuBrowser({ restaurant, items }: MenuBrowserProps) {
+type Group = {
+  id: string;
+  name: string;
+  accent: "sage" | "rose";
+  items: MenuItem[];
+};
+
+function splitItems(items: MenuItem[], excluded: string[], query: string) {
+  const q = query.trim().toLowerCase();
+  const base = q
+    ? items.filter(
+        (it) =>
+          it.name.toLowerCase().includes(q) ||
+          it.description.toLowerCase().includes(q) ||
+          it.category.toLowerCase().includes(q),
+      )
+    : items;
+
+  if (excluded.length === 0) {
+    return { safe: base, skip: [] };
+  }
+
+  const safe = base.filter((it) => excluded.every((exc) => !it.allergens.includes(exc)));
+  const skip = base.filter((it) => excluded.some((exc) => it.allergens.includes(exc)));
+  return { safe, skip };
+}
+
+export function MenuBrowser({ items }: MenuBrowserProps) {
+  const [selectedAllergens, setSelectedAllergens] = useState<string[]>([]);
   const [query, setQuery] = useState("");
-  const [selectedAllergens, setSelectedAllergens] = useState<Allergen[]>([]);
-  const restaurantPossessive = restaurant.name.endsWith("'s")
-    ? restaurant.name
-    : restaurant.name.endsWith("s")
-      ? `${restaurant.name}'`
-      : `${restaurant.name}'s`;
+  const [activeSection, setActiveSection] = useState("safe");
+
   const availableAllergens = useMemo(
-    () =>
-      Array.from(new Set(items.flatMap((item) => item.allergens))).sort((left, right) => left.localeCompare(right)),
+    () => Array.from(new Set(items.flatMap((it) => it.allergens))).sort((a, b) => a.localeCompare(b)),
     [items],
   );
 
-  const filteredItems = useMemo(
-    () =>
-      filterMenuItems(items, {
-        query,
-        excludedAllergens: selectedAllergens,
-      }),
-    [items, query, selectedAllergens],
+  const { safe, skip } = useMemo(
+    () => splitItems(items, selectedAllergens, query),
+    [items, selectedAllergens, query],
   );
 
-  function toggleAllergen(allergen: Allergen) {
-    setSelectedAllergens((current) =>
-      current.includes(allergen)
-        ? current.filter((item) => item !== allergen)
-        : [...current, allergen],
-    );
+  const groups: Group[] = [{ id: "safe", name: "Safe foods", accent: "sage", items: safe }];
+  if (selectedAllergens.length > 0 && skip.length > 0) {
+    groups.push({ id: "skip", name: "Skip foods", accent: "rose", items: skip });
   }
+
+  function toggleAllergen(a: string) {
+    setSelectedAllergens((prev) => (prev.includes(a) ? prev.filter((x) => x !== a) : [...prev, a]));
+  }
+
+  // Scrollspy
+  const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
+    const els = groups.map((g) => document.getElementById(`sec-${g.id}`)).filter(Boolean) as HTMLElement[];
+    if (els.length === 0) return;
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) {
+          setActiveSection(visible[0].target.id.replace(/^sec-/, ""));
+        }
+      },
+      { rootMargin: "-200px 0px -55% 0px", threshold: 0 },
+    );
+
+    els.forEach((el) => obs.observe(el));
+    return () => obs.disconnect();
+  }, [groups.length, selectedAllergens.join(",")]);
+
+  function jumpTo(id: string) {
+    const el = document.getElementById(`sec-${id}`);
+    if (!el) return;
+    const filter = document.querySelector(".filter");
+    const filterH = filter ? filter.getBoundingClientRect().height : 180;
+    const y = el.getBoundingClientRect().top + window.scrollY - filterH - 16;
+    window.scrollTo({ top: y, behavior: "smooth" });
+  }
+
+  const hasExclusions = selectedAllergens.length > 0;
 
   return (
     <>
-      <section className="filter-panel">
-        <div className="filter-layout">
-          <div>
-            <label className="field-label" htmlFor="dish-search">
-              Search {restaurantPossessive} menu
-            </label>
-            <input
-              id="dish-search"
-              className="search-input"
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Try fries, wrap, salad, burger..."
-            />
-          </div>
-          <div>
-            <span className="field-label">Exclude allergens</span>
-            <div className="allergen-grid">
-              {availableAllergens.map((allergen) => (
-                <label key={allergen} className="checkbox-card">
-                  <input
-                    type="checkbox"
-                    checked={selectedAllergens.includes(allergen)}
-                    onChange={() => toggleAllergen(allergen)}
-                  />
-                  <span>{allergen}</span>
-                </label>
-              ))}
-            </div>
-          </div>
+      <div className="filter">
+        <div className="filter-head">
+          <span className="filter-label">Avoid</span>
+          {hasExclusions && (
+            <span className="filter-stats">
+              <span className="ct ct-safe">{safe.length}</span> safe ·{" "}
+              <span className="ct ct-skip">{skip.length}</span> to skip
+            </span>
+          )}
+          {hasExclusions && (
+            <button className="filter-clear" onClick={() => setSelectedAllergens([])}>
+              Clear all
+            </button>
+          )}
         </div>
-        {selectedAllergens.length > 0 ? (
-          <div className="chip-row" style={{ marginTop: "18px" }}>
-            {selectedAllergens.map((allergen) => (
-              <span key={allergen} className="filter-chip">
-                Excluding {allergen}
-              </span>
+
+        <div className="filter-search">
+          <svg width="13" height="13" viewBox="0 0 15 15" fill="none" stroke="rgba(239,231,216,0.5)" strokeWidth="1.6">
+            <circle cx="6.5" cy="6.5" r="4.5" />
+            <path d="M10 10l3.5 3.5" />
+          </svg>
+          <input
+            type="search"
+            placeholder="Search dishes…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+
+        <div className="chips">
+          {availableAllergens.map((allergen) => (
+            <button
+              key={allergen}
+              className={`chip ${selectedAllergens.includes(allergen) ? "on" : ""}`}
+              onClick={() => toggleAllergen(allergen)}
+            >
+              {allergen}
+              {selectedAllergens.includes(allergen) && <span className="chip-x">×</span>}
+            </button>
+          ))}
+        </div>
+
+        {groups.length > 1 && (
+          <div className="sec-nav">
+            {groups.map((g) => (
+              <button
+                key={g.id}
+                className={`sec-nav-btn acc-${g.accent} ${activeSection === g.id ? "active" : ""}`}
+                onClick={() => jumpTo(g.id)}
+              >
+                <span className="sec-nav-letter">{g.name[0]}</span>
+                <span className="sec-nav-text">
+                  <span className="sec-nav-name">{g.name}</span>
+                  <span className="sec-nav-count">
+                    {g.id === "skip" ? `${g.items.length} to avoid` : `${g.items.length} available`}
+                  </span>
+                </span>
+              </button>
             ))}
           </div>
-        ) : null}
-      </section>
-
-      <section>
-        <div className="section-heading">
-          <div>
-            <h2>
-              {filteredItems.length} {filteredItems.length === 1 ? "dish" : "dishes"} available at a glance
-            </h2>
-            <p className="muted">
-              Chelsea&apos;s Plate filters out listed allergens, but always double-check with the restaurant before
-              ordering.
-            </p>
-          </div>
-        </div>
-
-        {filteredItems.length === 0 ? (
-          <div className="empty-state">
-            No dishes match your search and allergen filters right now. Try clearing one allergen or searching for a
-            broader term.
-          </div>
-        ) : (
-          <div className="results-grid">
-            {filteredItems.map((item) => {
-              const safety = summarizeDishSafety(item, selectedAllergens);
-
-              return (
-                <article key={item.id} className="result-card">
-                  <div className="result-topline">
-                    <div>
-                      <p className="muted" style={{ marginTop: 0 }}>
-                        {item.category}
-                      </p>
-                      <h3>{item.name}</h3>
-                    </div>
-                    <span className={`status-pill ${safety.tone}`}>{safety.label}</span>
-                  </div>
-                  <p>{item.description}</p>
-                  <p className="muted" style={{ marginTop: "14px" }}>
-                    Ingredients: {item.ingredients.join(", ")}
-                  </p>
-                  <div className="result-tags" style={{ marginTop: "14px" }}>
-                    {item.allergens.length > 0 ? (
-                      item.allergens.map((allergen) => (
-                        <span key={allergen} className="tag">
-                          {allergen}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="tag">No listed major allergens</span>
-                    )}
-                  </div>
-                  <p className="muted" style={{ marginTop: "14px" }}>
-                    {safety.summary}
-                  </p>
-                </article>
-              );
-            })}
-          </div>
         )}
-      </section>
+      </div>
+
+      {groups.map((group) => (
+        <MenuSection key={group.id} group={group} excluded={selectedAllergens} hasExclusions={hasExclusions} />
+      ))}
+
+      {safe.length === 0 && skip.length === 0 && (
+        <div className="empty-note">No dishes match your search. Try a broader term.</div>
+      )}
+
+      <div className="colophon">
+        Set in DM Serif Display &amp; Cormorant Garamond. Printed digitally.
+        <br />
+        Allergen guidance is general; individual sensitivities vary. Always confirm with the restaurant before ordering.
+      </div>
     </>
+  );
+}
+
+function MenuSection({
+  group,
+  excluded,
+  hasExclusions,
+}: {
+  group: Group;
+  excluded: string[];
+  hasExclusions: boolean;
+}) {
+  return (
+    <div className="menu-section" id={`sec-${group.id}`}>
+      <div className="section-head">
+        <div className={`section-letter section-letter-${group.accent}`}>{group.name[0]}</div>
+        <div className="section-meta">
+          <div className="section-eyebrow">
+            {group.items.length} {group.id === "skip" ? "to avoid" : "available"}
+          </div>
+          <div className="section-name">{group.name}</div>
+        </div>
+      </div>
+
+      {group.items.map((item) => {
+        const hits = excluded.filter((exc) => item.allergens.includes(exc));
+        const isSafe = hits.length === 0;
+
+        return (
+          <div key={item.id} className={`item ${!isSafe ? "dim" : ""}`}>
+            <div className="item-main">
+              <div className="item-head">
+                <h3 className="item-name">{item.name}</h3>
+                <div className="leader" />
+              </div>
+              <div className="item-category">{item.category}</div>
+              {hasExclusions &&
+                (isSafe ? (
+                  <div className="status-line status-safe">
+                    <span className="status-dot" />
+                    Safe to order
+                  </div>
+                ) : (
+                  <div className="status-line status-skip">
+                    <span className="status-dot" />
+                    Skip · contains {hits.slice(0, 2).join(", ")}
+                    {hits.length > 2 ? ` +${hits.length - 2}` : ""}
+                  </div>
+                ))}
+              <div className="item-desc">{item.description}</div>
+            </div>
+
+            <div className="item-aside">
+              <div className="aside-h">Ingredients</div>
+              <div className="ing-list">
+                {item.ingredients.map((ing, i) => (
+                  <span key={i} className={excluded.some((exc) => ing.toLowerCase().includes(exc)) ? "ing-hit" : ""}>
+                    {ing}
+                    {i < item.ingredients.length - 1 ? " · " : ""}
+                  </span>
+                ))}
+              </div>
+              {item.allergens.length > 0 && (
+                <>
+                  <div className="aside-h" style={{ marginTop: "12px" }}>
+                    Allergens
+                  </div>
+                  <div className="ing-list">
+                    {item.allergens.map((a, i) => (
+                      <span key={i} className={excluded.includes(a) ? "ing-hit" : ""}>
+                        {a}
+                        {i < item.allergens.length - 1 ? " · " : ""}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
