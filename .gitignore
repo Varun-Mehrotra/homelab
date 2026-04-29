@@ -5,3 +5,4 @@ static-site/
 apps/*/.next/
 apps/*/node_modules/
 apps/*/coverage/
+.env.local
