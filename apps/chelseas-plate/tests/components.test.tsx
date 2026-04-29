@@ -26,15 +26,14 @@ describe("menu browser", () => {
       throw new Error("Expected McDonald's Canada fixture data");
     }
 
-    render(<MenuBrowser restaurant={restaurant} items={getMenuItemsForRestaurantFixture(restaurant.id)} />);
+    render(<MenuBrowser items={getMenuItemsForRestaurantFixture(restaurant.id)} />);
 
-    await user.type(screen.getByRole("searchbox", { name: /search mcdonald/i }), "cone");
+    await user.type(screen.getByPlaceholderText(/search dishes/i), "cone");
 
-    expect(screen.getByRole("heading", { name: /1 dish available at a glance/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /vanilla cone/i })).toBeInTheDocument();
   });
 
-  it("shows an empty state when filters remove every dish", async () => {
+  it("shows skip status when allergens are excluded", async () => {
     const user = userEvent.setup();
     const restaurant = restaurants.find((entry) => entry.slug === "mcdonalds-canada");
 
@@ -42,12 +41,13 @@ describe("menu browser", () => {
       throw new Error("Expected McDonald's Canada fixture data");
     }
 
-    render(<MenuBrowser restaurant={restaurant} items={getMenuItemsForRestaurantFixture(restaurant.id)} />);
+    render(<MenuBrowser items={getMenuItemsForRestaurantFixture(restaurant.id)} />);
 
-    await user.click(screen.getByLabelText("milk"));
-    await user.click(screen.getByLabelText("soy"));
-    await user.type(screen.getByRole("searchbox", { name: /search mcdonald/i }), "cone");
+    await user.click(screen.getByRole("button", { name: "milk" }));
+    await user.click(screen.getByRole("button", { name: "soy" }));
+    await user.type(screen.getByPlaceholderText(/search dishes/i), "cone");
 
-    expect(screen.getByText(/no dishes match your search and allergen filters/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /vanilla cone/i })).toBeInTheDocument();
+    expect(screen.getByText(/skip · contains milk/i)).toBeInTheDocument();
   });
 });

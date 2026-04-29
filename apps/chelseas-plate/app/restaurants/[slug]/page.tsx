@@ -22,26 +22,18 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
   const items = await getMenuItemsForRestaurant(restaurant.id);
 
   return (
-    <main className="page-shell">
-      <div className="header-row">
-        <div>
-          <Link className="back-link" href="/">
-            Back to restaurants
-          </Link>
-          <h1 className="page-title" style={{ marginTop: "12px" }}>
-            {restaurant.name}
-          </h1>
-          <p className="subtitle" style={{ fontSize: "1.06rem", maxWidth: "58ch" }}>
-            {restaurant.description}
-          </p>
-        </div>
-        <div className="chip-row">
-          <span className="tag">{restaurant.cuisineHint}</span>
-          <span className="tag">{items.length} database-backed menu items</span>
-        </div>
+    <main>
+      <div className="page-head">
+        <Link className="crumb" href="/">
+          ← Back to the index
+        </Link>
+        <div className="folio">The Menu</div>
+        <h1 className="page-title">{restaurant.name}</h1>
+        {restaurant.cuisineHint && <div className="page-tagline">{restaurant.cuisineHint}</div>}
+        <div className="double-rule" />
       </div>
 
-      <MenuBrowser restaurant={restaurant} items={items} />
+      <MenuBrowser items={items} />
     </main>
   );
 }

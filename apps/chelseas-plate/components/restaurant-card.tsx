@@ -2,15 +2,23 @@ import React from "react";
 import Link from "next/link";
 import { type Restaurant } from "@/lib/data";
 
-export function RestaurantCard({ restaurant }: { restaurant: Restaurant }) {
+type RestaurantCardProps = {
+  restaurant: Restaurant;
+  index: number;
+};
+
+export function RestaurantCard({ restaurant, index }: RestaurantCardProps) {
+  const num = String(index + 1).padStart(2, "0");
+  const page = (index + 1) * 4 + 8;
+
   return (
-    <Link className="restaurant-card" href={`/restaurants/${restaurant.slug}`}>
-      <div className="restaurant-meta">
-        <span>{restaurant.cuisineHint}</span>
-        <span>View menu</span>
+    <Link className="toc-row" href={`/restaurants/${restaurant.slug}`}>
+      <div className="toc-num">{num}</div>
+      <div>
+        <div className="toc-name">{restaurant.name}</div>
+        {restaurant.cuisineHint && <div className="toc-tagline">{restaurant.cuisineHint}</div>}
       </div>
-      <h2>{restaurant.name}</h2>
-      <p>{restaurant.description}</p>
+      <div className="toc-page">p.&nbsp;{page}</div>
     </Link>
   );
 }
