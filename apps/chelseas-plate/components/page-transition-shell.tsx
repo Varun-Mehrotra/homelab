@@ -10,6 +10,7 @@ type PageTransitionShellProps = {
 type EnterDirection = "forward" | "back" | null;
 
 const ENTER_STORAGE_KEY = "chelseas-plate:enter-direction";
+const TRANSITION_MS = 1000;
 
 export function PageTransitionShell({ children }: PageTransitionShellProps) {
   const pathname = usePathname();
@@ -26,17 +27,18 @@ export function PageTransitionShell({ children }: PageTransitionShellProps) {
       setEnterDirection(nextDirection);
       setIsTransitionReady(true);
       window.sessionStorage.removeItem(ENTER_STORAGE_KEY);
+      window.scrollTo(0, 0);
 
       const overlay = document.querySelector(".page-transition-overlay");
       if (overlay instanceof HTMLElement) {
         const timeoutId = window.setTimeout(() => {
           overlay.remove();
-        }, 320);
+        }, TRANSITION_MS);
 
         const enterTimeoutId = window.setTimeout(() => {
           setEnterDirection(null);
           setIsTransitionReady(false);
-        }, 320);
+        }, TRANSITION_MS);
 
         return () => {
           window.clearTimeout(timeoutId);
@@ -47,7 +49,7 @@ export function PageTransitionShell({ children }: PageTransitionShellProps) {
       const enterTimeoutId = window.setTimeout(() => {
         setEnterDirection(null);
         setIsTransitionReady(false);
-      }, 320);
+      }, TRANSITION_MS);
 
       return () => window.clearTimeout(enterTimeoutId);
     }

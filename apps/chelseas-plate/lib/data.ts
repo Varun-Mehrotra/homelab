@@ -16,12 +16,18 @@ export type MenuItemComponent = {
   mayContainAllergens: Allergen[];
 };
 
+export type MenuItemDetailMode = "components" | "ingredients" | "missing";
+
 export type MenuItem = {
   id: string;
   restaurantId: string;
   name: string;
   category: string;
   description: string;
+  detailMode: MenuItemDetailMode;
   components: MenuItemComponent[];
+  ingredients?: string;
+  containsAllergens: Allergen[];
+  mayContainAllergens: Allergen[];
   allergens: Allergen[];
 };

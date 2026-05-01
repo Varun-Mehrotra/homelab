@@ -22,12 +22,26 @@ type RawComponent = {
   item_component_allergens: AllergenRecord[];
 };
 
+type RawMenuItemAllergen = {
+  relation_type: "contains" | "may_contain";
+  allergen:
+    | {
+        name: string;
+      }
+    | {
+        name: string;
+      }[]
+    | null;
+};
+
 type MenuItemRow = {
   id: string;
   restaurant_id: string;
   name: string;
   category: string;
   description: string;
+  ingredient_statement: string | null;
+  menu_item_allergens: (RawMenuItemAllergen | RawMenuItemAllergen[] | null)[];
   item_components: (RawComponent | RawComponent[] | null)[];
 };
 
@@ -57,6 +71,14 @@ function getComponent(entry: RawComponent | RawComponent[] | null) {
 
 function getAllergenName(record: AllergenRecord) {
   return firstOf(record.allergen)?.name ?? null;
+}
+
+function getMenuItemAllergen(entry: RawMenuItemAllergen | RawMenuItemAllergen[] | null) {
+  return firstOf(entry);
+}
+
+function getItemIngredientStatement(menuItem: MenuItemRow) {
+  return menuItem.ingredient_statement?.trim() || "";
 }
 
 export function deriveComponents(menuItem: MenuItemRow): MenuItemComponent[] {
@@ -100,10 +122,48 @@ export function deriveComponents(menuItem: MenuItemRow): MenuItemComponent[] {
     .map(({ sortOrder: _sortOrder, ...component }) => component);
 }
 
+export function deriveItemLevelAllergens(menuItem: MenuItemRow) {
+  const linkedContainsAllergens = menuItem.menu_item_allergens
+    .flatMap((entry) => {
+      const allergenLink = getMenuItemAllergen(entry);
+      if (!allergenLink || allergenLink.relation_type !== "contains") {
+        return [];
+      }
+
+      const allergenName = firstOf(allergenLink.allergen)?.name;
+      return allergenName ? [allergenName] : [];
+    });
+
+  const linkedMayContainAllergens = menuItem.menu_item_allergens
+    .flatMap((entry) => {
+      const allergenLink = getMenuItemAllergen(entry);
+      if (!allergenLink || allergenLink.relation_type !== "may_contain") {
+        return [];
+      }
+
+      const allergenName = firstOf(allergenLink.allergen)?.name;
+      return allergenName ? [allergenName] : [];
+    })
+    .sort((left, right) => left.localeCompare(right));
+
+  const derivedContainsAllergens = deriveAliasAllergensFromText(getItemIngredientStatement(menuItem));
+
+  return {
+    containsAllergens: mergeAllergens(linkedContainsAllergens, derivedContainsAllergens),
+    mayContainAllergens: mergeAllergens(linkedMayContainAllergens),
+  };
+}
+
 export function deriveAllergens(menuItem: MenuItemRow) {
-  return mergeAllergens(
-    ...deriveComponents(menuItem).map((component) => [...component.containsAllergens, ...component.mayContainAllergens]),
-  );
+  const components = deriveComponents(menuItem);
+  if (components.length > 0) {
+    return mergeAllergens(
+      ...components.map((component) => [...component.containsAllergens, ...component.mayContainAllergens]),
+    );
+  }
+
+  const itemLevelAllergens = deriveItemLevelAllergens(menuItem);
+  return mergeAllergens(itemLevelAllergens.containsAllergens, itemLevelAllergens.mayContainAllergens);
 }
 
 export function mapRestaurant(row: RestaurantRow): Restaurant {
@@ -117,14 +177,29 @@ export function mapRestaurant(row: RestaurantRow): Restaurant {
 }
 
 export function mapMenuItem(row: MenuItemRow): MenuItem {
+  const components = deriveComponents(row);
+  const itemLevelAllergens = deriveItemLevelAllergens(row);
+  const ingredients = getItemIngredientStatement(row);
+  const detailMode = components.length > 0 ? "components" : ingredients ? "ingredients" : "missing";
+
   return {
     id: row.id,
     restaurantId: row.restaurant_id,
     name: row.name,
     category: row.category,
     description: row.description,
-    components: deriveComponents(row),
-    allergens: deriveAllergens(row),
+    detailMode,
+    components,
+    ingredients: detailMode === "ingredients" ? ingredients : undefined,
+    containsAllergens:
+      detailMode === "components" ? [] : itemLevelAllergens.containsAllergens,
+    mayContainAllergens:
+      detailMode === "components" ? [] : itemLevelAllergens.mayContainAllergens,
+    allergens: detailMode === "components"
+      ? mergeAllergens(
+          ...components.map((component) => [...component.containsAllergens, ...component.mayContainAllergens]),
+        )
+      : mergeAllergens(itemLevelAllergens.containsAllergens, itemLevelAllergens.mayContainAllergens),
   };
 }
 
@@ -183,6 +258,13 @@ export async function getMenuItemsForRestaurant(restaurantId: string) {
         name,
         category,
         description,
+        ingredient_statement,
+        menu_item_allergens (
+          relation_type,
+          allergen:allergens (
+            name
+          )
+        ),
         item_components (
             id,
             name,

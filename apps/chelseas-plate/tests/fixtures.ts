@@ -29,6 +29,7 @@ export const menuItems: MenuItem[] = [
     category: "Beef",
     description:
       "The comforting taste of the juicy and delicious 100% Canadian beef burger, topped with tangy pickles, ketchup, mustard and the sweet bite of onion, all on a freshly toasted bun. Just like you remember.",
+    detailMode: "components",
     components: [
       {
         id: "hamburger-regular-bun",
@@ -82,6 +83,8 @@ export const menuItems: MenuItem[] = [
         mayContainAllergens: [],
       },
     ],
+    containsAllergens: [],
+    mayContainAllergens: [],
     allergens: ["mustard", "onion", "sesame seeds", "wheat"],
   },
   {
@@ -91,6 +94,7 @@ export const menuItems: MenuItem[] = [
     category: "Chicken",
     description:
       "Breaded seasoned chicken and crisp lettuce, topped with our Mayo-Style Sauce. Some ingredients are just meant to be together.",
+    detailMode: "components",
     components: [
       {
         id: "mcchicken-portion",
@@ -124,6 +128,8 @@ export const menuItems: MenuItem[] = [
         mayContainAllergens: [],
       },
     ],
+    containsAllergens: [],
+    mayContainAllergens: [],
     allergens: ["egg", "mustard", "sesame seeds", "soy", "wheat"],
   },
 ];

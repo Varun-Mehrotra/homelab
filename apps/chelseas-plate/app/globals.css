@@ -47,17 +47,16 @@ button { font: inherit; color: inherit; cursor: pointer; }
   position: relative;
   z-index: 2;
   background: var(--paper);
-  min-height: calc(100vh - 62px);
+  min-height: 100vh;
   will-change: transform, opacity;
 }
 
 .page-transition-overlay {
-  position: absolute;
+  position: fixed;
   z-index: 1;
   overflow: clip;
   pointer-events: none;
   background: var(--paper);
-  min-height: calc(100vh - 62px);
 }
 
 .page-transition-shell-enter-forward {
@@ -435,6 +434,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   color: var(--rose-2);
 }
 .sec-nav-btn.active.acc-sage .sec-nav-letter { color: #6b8043; }
+.sec-nav-btn.active.acc-gold .sec-nav-letter { color: #9a6a2e; }
 .sec-nav-btn.active.acc-rose .sec-nav-letter { color: var(--rose); }
 .sec-nav-btn.active .sec-nav-count { color: var(--ink-3); }
 .sec-nav-text {
@@ -477,6 +477,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 .section-letter-rose { color: var(--rose); }
 .section-letter-sage { color: #6b8043; }
+.section-letter-gold { color: #9a6a2e; }
 .section-meta {
   flex: 1;
   padding-bottom: 6px;
@@ -569,6 +570,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   margin-bottom: 10px;
 }
 .status-safe { color: #5a6b3f; background: var(--sage-bg); }
+.status-pause { color: #8a6a2f; background: rgba(169, 138, 91, 0.12); }
 .status-skip { color: #8a4a3f; background: var(--rose-bg); }
 .status-dot {
   width: 5px;
@@ -600,7 +602,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
   margin-bottom: 6px;
   font-weight: 600;
 }
-.ing-list { letter-spacing: 0.02em; line-height: 1.65; }
+.ing-list {
+  letter-spacing: 0.02em;
+  line-height: 1.65;
+  text-transform: lowercase;
+}
 .item-aside-inner {
   overflow: hidden;
 }
@@ -611,6 +617,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
   max-height: none;
 }
 .component-block { margin-top: 10px; }
+.declared-allergen-note {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: rgba(169, 138, 91, 0.08);
+}
+.declared-allergen-note-title {
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  font-weight: 600;
+}
 .expand-toggle {
   margin-top: 6px;
   border: none;
@@ -636,7 +654,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   transition: transform 180ms ease;
 }
 .expand-arrow.open { transform: rotate(180deg); }
-.item-aside.collapsed::after {
+.item-aside.collapsed.can-expand::after {
   content: "";
   position: absolute;
   left: 24px;
@@ -647,7 +665,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
   pointer-events: none;
 }
 @media (max-width: 619px) {
-  .item-aside.collapsed::after {
+  .item-aside.collapsed.can-expand::after {
     left: 0;
   }
 }

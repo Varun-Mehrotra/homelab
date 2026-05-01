@@ -11,7 +11,7 @@ type MenuBrowserProps = {
 type Group = {
   id: string;
   name: string;
-  accent: "sage" | "rose";
+  accent: "sage" | "rose" | "gold";
   items: MenuItem[];
 };
 
@@ -61,12 +61,102 @@ function splitItems(items: MenuItem[], excluded: string[], query: string) {
     : items;
 
   if (excluded.length === 0) {
-    return { safe: base, skip: [] };
+    const pause = base.filter((it) => it.detailMode === "missing");
+    const safe = base.filter((it) => it.detailMode !== "missing");
+    return { safe, pause, skip: [] };
   }
 
-  const safe = base.filter((it) => excluded.every((exc) => !it.allergens.includes(exc)));
   const skip = base.filter((it) => excluded.some((exc) => it.allergens.includes(exc)));
-  return { safe, skip };
+  const pause = base.filter(
+    (it) => it.detailMode === "missing" && excluded.every((exc) => !it.allergens.includes(exc)),
+  );
+  const safe = base.filter(
+    (it) => it.detailMode !== "missing" && excluded.every((exc) => !it.allergens.includes(exc)),
+  );
+  return { safe, pause, skip };
+}
+
+function getItemDetailTitle(item: MenuItem) {
+  if (item.detailMode === "ingredients") {
+    return "Ingredients";
+  }
+
+  if (item.detailMode === "missing") {
+    return "Details";
+  }
+
+  return "Components";
+}
+
+function getItemCanExpand(item: MenuItem) {
+  if (item.detailMode === "components") {
+    return item.components.length > 3 || item.components.some((component) => component.ingredients.length > 120);
+  }
+
+  if (item.detailMode === "ingredients") {
+    return (item.ingredients?.length ?? 0) > 220;
+  }
+
+  return false;
+}
+
+function mergeSorted(values: string[]) {
+  return Array.from(new Set(values)).sort((left, right) => left.localeCompare(right));
+}
+
+function getComponentDeclaredAllergens(item: MenuItem) {
+  const containsAllergens = mergeSorted(item.components.flatMap((component) => component.containsAllergens));
+  const mayContainAllergens = mergeSorted(
+    item.components
+      .flatMap((component) => component.mayContainAllergens)
+      .filter((allergen) => !containsAllergens.includes(allergen)),
+  );
+
+  return {
+    containsAllergens,
+    mayContainAllergens,
+  };
+}
+
+function DeclaredAllergenNotice({
+  containsAllergens,
+  mayContainAllergens,
+  excluded,
+}: {
+  containsAllergens: string[];
+  mayContainAllergens: string[];
+  excluded: string[];
+}) {
+  if (containsAllergens.length === 0 && mayContainAllergens.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="declared-allergen-note">
+      <div className="declared-allergen-note-title">Allergen notice</div>
+      {containsAllergens.length > 0 && (
+        <div className="ing-list" style={{ marginTop: "6px" }}>
+          {containsAllergens.map((allergen, index) => (
+            <span key={allergen} className={excluded.includes(allergen) ? "ing-hit" : ""}>
+              {allergen}
+              {index < containsAllergens.length - 1 ? ", " : "."}
+            </span>
+          ))}
+        </div>
+      )}
+      {mayContainAllergens.length > 0 && (
+        <div className="ing-list" style={{ marginTop: "4px" }}>
+          Source-declared may contain:{" "}
+          {mayContainAllergens.map((allergen, index) => (
+            <span key={allergen} className={excluded.includes(allergen) ? "ing-hit" : ""}>
+              {allergen}
+              {index < mayContainAllergens.length - 1 ? ", " : "."}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function MenuBrowser({ items, availableAllergens: availableAllergensProp }: MenuBrowserProps) {
@@ -83,12 +173,15 @@ export function MenuBrowser({ items, availableAllergens: availableAllergensProp 
     return Array.from(new Set(items.flatMap((it) => it.allergens))).sort((a, b) => a.localeCompare(b));
   }, [availableAllergensProp, items]);
 
-  const { safe, skip } = useMemo(
+  const { safe, pause, skip } = useMemo(
     () => splitItems(items, selectedAllergens, query),
     [items, selectedAllergens, query],
   );
 
   const groups: Group[] = [{ id: "safe", name: "Safe foods", accent: "sage", items: safe }];
+  if (pause.length > 0) {
+    groups.push({ id: "pause", name: "Pause foods", accent: "gold", items: pause });
+  }
   if (selectedAllergens.length > 0) {
     groups.push({ id: "skip", name: "Skip foods", accent: "rose", items: skip });
   }
@@ -137,6 +230,7 @@ export function MenuBrowser({ items, availableAllergens: availableAllergensProp 
           {hasExclusions && (
             <span className="filter-stats">
               <span className="ct ct-safe">{safe.length}</span> safe ·{" "}
+              <span className="ct">{pause.length}</span> pause ·{" "}
               <span className="ct ct-skip">{skip.length}</span> to skip
             </span>
           )}
@@ -185,7 +279,11 @@ export function MenuBrowser({ items, availableAllergens: availableAllergensProp 
                 <span className="sec-nav-text">
                   <span className="sec-nav-name">{g.name}</span>
                   <span className="sec-nav-count">
-                    {g.id === "skip" ? `${g.items.length} to avoid` : `${g.items.length} available`}
+                    {g.id === "skip"
+                      ? `${g.items.length} to avoid`
+                      : g.id === "pause"
+                        ? `${g.items.length} to review`
+                        : `${g.items.length} available`}
                   </span>
                 </span>
               </button>
@@ -205,7 +303,7 @@ export function MenuBrowser({ items, availableAllergens: availableAllergensProp 
         />
       ))}
 
-      {safe.length === 0 && skip.length === 0 && (
+      {safe.length === 0 && pause.length === 0 && skip.length === 0 && (
         <div className="empty-note">No dishes match your search. Try a broader term.</div>
       )}
 
@@ -237,7 +335,8 @@ function MenuSection({
         <div className={`section-letter section-letter-${group.accent}`}>{group.name[0]}</div>
         <div className="section-meta">
           <div className="section-eyebrow">
-            {group.items.length} {group.id === "skip" ? "to avoid" : "available"}
+            {group.items.length}{" "}
+            {group.id === "skip" ? "to avoid" : group.id === "pause" ? "to review" : "available"}
           </div>
           <div className="section-name">{group.name}</div>
         </div>
@@ -246,7 +345,11 @@ function MenuSection({
       {group.items.map((item) => {
         const hits = excluded.filter((exc) => item.allergens.includes(exc));
         const isSafe = hits.length === 0;
-        const canExpand = item.components.length > 3 || item.components.some((component) => component.ingredients.length > 120);
+        const isPauseItem = item.detailMode === "missing";
+        const isFlagged = hits.length > 0;
+        const canExpand = getItemCanExpand(item);
+        const componentDeclaredAllergens =
+          item.detailMode === "components" ? getComponentDeclaredAllergens(item) : null;
 
         return (
           <div key={item.id} className={`item ${!isSafe ? "dim" : ""}`}>
@@ -256,8 +359,13 @@ function MenuSection({
                 <div className="leader" />
               </div>
               <div className="item-category">{item.category}</div>
-              {hasExclusions &&
-                (isSafe ? (
+              {isPauseItem && !isFlagged ? (
+                <div className="status-line status-pause">
+                  <span className="status-dot" />
+                  Pause · ingredient data missing
+                </div>
+              ) : hasExclusions ? (
+                isSafe ? (
                   <div className="status-line status-safe">
                     <span className="status-dot" />
                     Safe to order
@@ -268,43 +376,56 @@ function MenuSection({
                     Skip · flagged for {hits.slice(0, 2).join(", ")}
                     {hits.length > 2 ? ` +${hits.length - 2}` : ""}
                   </div>
-                ))}
+                )
+              ) : null}
               <div className="item-desc">{item.description}</div>
             </div>
 
-            <div className={`item-aside ${expandedItems[item.id] ? "expanded" : "collapsed"}`}>
-              <div className="aside-h">Components</div>
+            <div
+              className={`item-aside ${expandedItems[item.id] ? "expanded" : "collapsed"} ${canExpand ? "can-expand" : ""}`}
+            >
+              <div className="aside-h">{getItemDetailTitle(item)}</div>
               <div className="item-aside-inner">
-                {item.components.map((component) => (
-                  <div key={component.id} className="component-block">
-                    <div className="item-category">{component.name}</div>
-                    <div className="ing-list" style={{ marginTop: "4px" }}>
-                      {component.ingredients}
-                    </div>
-                    {component.containsAllergens.length > 0 && (
-                      <div className="ing-list" style={{ marginTop: "6px" }}>
-                        Contains:{" "}
-                        {component.containsAllergens.map((allergen, index) => (
-                          <span key={allergen} className={excluded.includes(allergen) ? "ing-hit" : ""}>
-                            {allergen}
-                            {index < component.containsAllergens.length - 1 ? " · " : ""}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    {component.mayContainAllergens.length > 0 && (
+                {item.detailMode === "components" && componentDeclaredAllergens && (
+                  <DeclaredAllergenNotice
+                    containsAllergens={componentDeclaredAllergens.containsAllergens}
+                    mayContainAllergens={componentDeclaredAllergens.mayContainAllergens}
+                    excluded={excluded}
+                  />
+                )}
+                {item.detailMode === "components" &&
+                  item.components.map((component) => (
+                    <div key={component.id} className="component-block">
+                      <div className="item-category">{component.name}</div>
                       <div className="ing-list" style={{ marginTop: "4px" }}>
-                        May contain:{" "}
-                        {component.mayContainAllergens.map((allergen, index) => (
-                          <span key={allergen} className={excluded.includes(allergen) ? "ing-hit" : ""}>
-                            {allergen}
-                            {index < component.mayContainAllergens.length - 1 ? " · " : ""}
-                          </span>
-                        ))}
+                        {component.ingredients}
                       </div>
-                    )}
+                    </div>
+                  ))}
+                {item.detailMode === "ingredients" && (
+                  <div className="component-block">
+                    <DeclaredAllergenNotice
+                      containsAllergens={item.containsAllergens}
+                      mayContainAllergens={item.mayContainAllergens}
+                      excluded={excluded}
+                    />
+                    <div className="ing-list" style={{ marginTop: "10px" }}>
+                      {item.ingredients}
+                    </div>
                   </div>
-                ))}
+                )}
+                {item.detailMode === "missing" && (
+                  <div className="component-block">
+                    <DeclaredAllergenNotice
+                      containsAllergens={item.containsAllergens}
+                      mayContainAllergens={item.mayContainAllergens}
+                      excluded={excluded}
+                    />
+                    <div className="ing-list" style={{ marginTop: "10px" }}>
+                      Ingredient details unavailable from the current source.
+                    </div>
+                  </div>
+                )}
               </div>
               {canExpand ? (
                 <button

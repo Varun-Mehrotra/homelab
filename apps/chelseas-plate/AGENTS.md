@@ -8,6 +8,7 @@ This file documents the current data-model rules for `apps/chelseas-plate` so fu
 - Related Supabase files:
   - `/Users/varun/projects/homelab/supabase/chelseas-plate/migrations/001_schema.sql`
   - `/Users/varun/projects/homelab/supabase/chelseas-plate/migrations/002_item_components.sql`
+  - `/Users/varun/projects/homelab/supabase/chelseas-plate/migrations/003_item_level_ingredients.sql`
   - `/Users/varun/projects/homelab/supabase/chelseas-plate/seed.sql`
 - Main app mapping code:
   - `/Users/varun/projects/homelab/apps/chelseas-plate/lib/data.ts`
@@ -16,7 +17,13 @@ This file documents the current data-model rules for `apps/chelseas-plate` so fu
 
 ## Effective Data Model
 
-The app currently treats `item_components` as the source of truth for item composition and allergen display.
+The app now supports two item detail shapes:
+- `components`
+  - use `item_components` and `item_component_allergens`
+- `ingredients`
+  - use `menu_items.ingredient_statement` and `menu_item_allergens`
+
+If neither source is populated, the app falls back to a `missing` display mode so the UI stays stable.
 
 ### Restaurant
 
@@ -58,7 +65,11 @@ App type:
   - `name`
   - `category`
   - `description`
+  - `detailMode`
   - `components`
+  - `ingredients`
+  - `containsAllergens`
+  - `mayContainAllergens`
   - `allergens`
 
 Criteria:
@@ -107,13 +118,35 @@ Criteria:
 - Use `may_contain` when the source explicitly says `May contain: ...`.
 - `may_contain` still contributes to item-level filtering. This is intentional and conservative.
 
+### Direct Ingredient Fallback
+
+Database fields used by the app:
+- `menu_items.ingredient_statement`
+- `menu_item_allergens.menu_item_id`
+- `menu_item_allergens.allergen_id`
+- `menu_item_allergens.relation_type`
+
+App behavior:
+- `detailMode = "ingredients"` when an item has no `item_components` but does have `ingredient_statement`
+- `detailMode = "missing"` when neither source exists
+
+Criteria:
+- Use direct ingredients only when the source does not expose real sub-parts worth modeling as components.
+- Keep the full flat ingredient text in `ingredient_statement`.
+- Use `menu_item_allergens` for explicit source-declared item-level allergens.
+- Alias-derived sensitivities still run against `ingredient_statement`.
+
 ## Current Allergen Behavior
 
-Item-level allergen filtering is derived from the union of all component allergens.
+Item-level allergen filtering is derived from the active detail source.
 
 Source layers:
-1. Explicit database links in `item_component_allergens`
-2. Alias-derived sensitivities from raw ingredient text in `ingredient_statement`
+1. Component mode:
+   - explicit database links in `item_component_allergens`
+   - alias-derived sensitivities from each component `ingredient_statement`
+2. Ingredient mode:
+   - explicit database links in `menu_item_allergens`
+   - alias-derived sensitivities from `menu_items.ingredient_statement`
 
 Current alias-derived sensitivities in `/Users/varun/projects/homelab/apps/chelseas-plate/lib/allergen-aliases.ts`:
 - `onion`
@@ -139,6 +172,7 @@ The current app repository does not read from those tables. The live app path us
 - `restaurants`
 - `allergens`
 - `menu_items`
+- `menu_item_allergens`
 - `item_components`
 - `item_component_allergens`
 
@@ -152,11 +186,19 @@ When adding a new item to Supabase:
 
 1. Add or confirm the parent restaurant row exists.
 2. Add the `menu_items` row with accurate `name`, `category`, `description`, and `sort_order`.
-3. Add one `item_components` row per real menu sub-part.
-4. Paste the full ingredient statement for each component.
-5. Add `item_component_allergens` rows for explicit `contains` and `may_contain` declarations.
+3. Choose one detail mode:
+   - use `item_components` for real sub-parts
+   - use `ingredient_statement` for flat ingredient-only items
+4. If using components:
+   - add one `item_components` row per real menu sub-part
+   - paste the full ingredient statement for each component
+   - add `item_component_allergens` rows for explicit `contains` and `may_contain` declarations
+5. If using direct ingredients:
+   - set `menu_items.ingredient_statement`
+   - add `menu_item_allergens` rows for explicit `contains` and `may_contain` declarations
 6. Check whether the raw text includes alias-based sensitivities like onion, garlic, or MSG.
 7. Verify the item renders with:
+   - the correct detail heading (`Components` or `Ingredients`)
    - correct component order
    - correct `Contains` rows
    - correct `May contain` rows
@@ -212,11 +254,24 @@ After changing Supabase data or seed content:
 
 ## Current Seed State
 
-At the time of writing, the seed is generated from the current McDonald's Canada public menu and item detail pages:
-- one restaurant: `McDonald's Canada`
-- current generated menu size: `166` items
-- current generated component size: `622` components
+At the time of writing, the seed contains two source-driven restaurant datasets:
+- `McDonald's Canada`
+  - generated from the public full menu and item detail pages
+- `Starbucks Canada`
+  - limited to food items from:
+    - breakfast
+    - bakery
+    - treats
+    - lunch
+    - lite bites
+  - generated from the public ordering API
+
+Current combined seed size:
+- restaurants: `2`
+- menu items: `223`
+- components: `977`
 
 Operational notes:
-- the generator currently skips a few broken product links if McDonald's leaves dead links in category pages
-- the live site can rate-limit repeated full scrapes, so the checked-in `seed.sql` is the source of truth after a successful generation run
+- the McDonald's generator can still hit rate limits or broken product links, so the checked-in `seed.sql` remains the source of truth after a successful run
+- the Starbucks generator uses a local cache during generation to survive throttling/timeouts; that cache is intentionally not committed
+- the Starbucks generator now emits either component rows or direct ingredient fallback data on an item-by-item basis

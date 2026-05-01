@@ -35,14 +35,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="en">
       <body className={`${dmSerifDisplay.variable} ${cormorantGaramond.variable} ${inter.variable}`}>
         <div className="shell">
-          <header className="masthead">
-            <span className="masthead-brand">Chelsea&apos;s Plate</span>
-            <div className="masthead-meta">
-              <span>Vol. 1 · No. 04</span>
-              <span>Apr. 2026</span>
-            </div>
-          </header>
-          <PageTransitionShell>{children}</PageTransitionShell>
+          <PageTransitionShell>
+            <header className="masthead">
+              <span className="masthead-brand">Chelsea&apos;s Plate</span>
+              <div className="masthead-meta">
+                <span>Vol. 1 · No. 04</span>
+                <span>Apr. 2026</span>
+              </div>
+            </header>
+            {children}
+          </PageTransitionShell>
         </div>
       </body>
     </html>

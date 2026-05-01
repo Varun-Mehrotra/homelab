@@ -205,7 +205,7 @@ CI behavior:
 
 Purpose:
 
-- allergy-aware restaurant/menu browsing app using live McDonald’s Canada data
+- allergy-aware restaurant/menu browsing app using source-driven Canadian restaurant menu data
 
 Tech stack:
 
@@ -214,10 +214,29 @@ Tech stack:
 - Supabase
 - Vitest
 
+Data model note:
+
+- menu detail is mixed-mode
+  - componentized items use `item_components`
+  - flat ingredient items use `menu_items.ingredient_statement` plus `menu_item_allergens`
+
 Related directories:
 
 - `supabase/chelseas-plate`
 - `flux/chelseas-plate`
+
+Current data coverage:
+
+- `McDonald's Canada`
+  - broad public-menu coverage from McDonald's Canada sources
+- `Starbucks Canada`
+  - food items only
+  - categories currently seeded:
+    - breakfast
+    - bakery
+    - treats
+    - lunch
+    - lite bites
 
 Ingress:
 

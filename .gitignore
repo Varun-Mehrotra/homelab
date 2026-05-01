@@ -6,3 +6,4 @@ apps/*/.next/
 apps/*/node_modules/
 apps/*/coverage/
 .env.local
+supabase/chelseas-plate/scripts/.starbucks-cache/
