@@ -2,6 +2,8 @@
 
 Chelsea's Plate is a simple restaurant allergy navigator for eating out. Users pick a restaurant, search the menu, and exclude allergens to quickly see which dishes still fit their needs.
 
+The current seed data is a live-generated McDonald's Canada menu snapshot stored in `/Users/varun/projects/homelab/supabase/chelseas-plate/seed.sql`.
+
 ## Run locally
 
 ```sh

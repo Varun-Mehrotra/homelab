@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen } from "@testing-library/react";
 import { within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { MenuBrowser } from "@/components/menu-browser";
 import { RestaurantDirectory } from "@/components/restaurant-directory";
 import { getMenuItemsForRestaurantFixture, restaurants } from "@/tests/fixtures";
@@ -107,5 +107,34 @@ describe("menu browser", () => {
     const skipButton = screen.getByRole("button", { name: /skip foods/i });
     expect(skipButton).toBeInTheDocument();
     expect(within(skipButton).getByText(/0 to avoid/i)).toBeInTheDocument();
+  });
+
+  it("highlights the clicked section button immediately", async () => {
+    const user = userEvent.setup();
+    const restaurant = restaurants.find((entry) => entry.slug === "mcdonalds-canada");
+
+    if (!restaurant) {
+      throw new Error("Expected McDonald's Canada fixture data");
+    }
+
+    window.scrollTo = vi.fn();
+
+    render(
+      <MenuBrowser
+        items={getMenuItemsForRestaurantFixture(restaurant.id)}
+        availableAllergens={["egg", "garlic", "mustard", "onion", "sesame seeds", "soy", "wheat"]}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "sesame seeds" }));
+
+    const safeButton = screen.getByRole("button", { name: /safe foods/i });
+    const skipButton = screen.getByRole("button", { name: /skip foods/i });
+
+    expect(safeButton).toBeInTheDocument();
+
+    await user.click(skipButton);
+
+    expect(skipButton.className).toContain("active");
   });
 });

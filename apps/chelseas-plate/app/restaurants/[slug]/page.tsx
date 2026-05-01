@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MenuBrowser } from "@/components/menu-browser";
+import { TransitionLink } from "@/components/transition-link";
 import { getAllergens, getMenuItemsForRestaurant, getRestaurantBySlug } from "@/lib/repository";
 
 export const dynamic = "force-dynamic";
@@ -22,11 +22,13 @@ export default async function RestaurantPage({ params }: RestaurantPageProps) {
   const [allergens, items] = await Promise.all([getAllergens(), getMenuItemsForRestaurant(restaurant.id)]);
 
   return (
-    <main>
-      <div className="page-head">
-        <Link className="crumb" href="/">
+    <main className="restaurant-page">
+      <div className="crumb-rail">
+        <TransitionLink className="crumb" href="/" direction="back">
           ← Back to the index
-        </Link>
+        </TransitionLink>
+      </div>
+      <div className="page-head">
         <div className="folio">The Menu</div>
         <h1 className="page-title">{restaurant.name}</h1>
         {restaurant.cuisineHint && <div className="page-tagline">{restaurant.cuisineHint}</div>}

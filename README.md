@@ -257,7 +257,7 @@ export SUPABASE_SERVICE_ROLE_KEY='<service-role-key>'
 npm run dev
 ```
 
-Supabase schema and the current curated McDonald's Canada seed for Chelsea's Plate live in `supabase/chelseas-plate`:
+Supabase schema and the current live-generated McDonald's Canada seed for Chelsea's Plate live in `supabase/chelseas-plate`:
 
 ```sh
 psql "$SUPABASE_DB_URL" -f supabase/chelseas-plate/migrations/001_schema.sql

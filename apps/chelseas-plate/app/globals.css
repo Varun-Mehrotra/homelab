@@ -32,13 +32,71 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .shell {
   max-width: 760px;
   margin: 0 auto;
+  position: relative;
   background: var(--paper);
   min-height: 100vh;
   border-left: 1px solid var(--rule);
   border-right: 1px solid var(--rule);
+  overflow: clip;
 }
 @media (max-width: 760px) {
   .shell { border-left: none; border-right: none; }
+}
+
+.page-transition-shell {
+  position: relative;
+  z-index: 2;
+  background: var(--paper);
+  min-height: calc(100vh - 62px);
+  will-change: transform, opacity;
+}
+
+.page-transition-overlay {
+  position: absolute;
+  z-index: 1;
+  overflow: clip;
+  pointer-events: none;
+  background: var(--paper);
+  min-height: calc(100vh - 62px);
+}
+
+.page-transition-shell-enter-forward {
+  animation: page-enter-from-right 1000ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.page-transition-shell-enter-back {
+  animation: page-enter-from-left 1000ms cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+@keyframes page-enter-from-right {
+  from {
+    opacity: 1;
+    transform: translate3d(100%, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes page-enter-from-left {
+  from {
+    opacity: 1;
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-transition-shell,
+  .page-transition-overlay,
+  .page-transition-shell-enter-forward,
+  .page-transition-shell-enter-back {
+    animation: none !important;
+  }
 }
 
 /* ── MASTHEAD ──────────────────────────────────────────────── */
@@ -191,8 +249,15 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 
 /* ── PAGE HEAD (RESTAURANT) ────────────────────────────────── */
+.crumb-rail {
+  position: sticky;
+  top: 0;
+  z-index: 24;
+  background: var(--paper);
+  padding: 24px 48px 14px;
+}
 .page-head {
-  padding: 32px 48px 24px;
+  padding: 0 48px 24px;
   border-bottom: 1px solid var(--rule);
 }
 .crumb {
@@ -203,7 +268,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 22px;
   text-decoration: none;
   transition: color 0.15s;
 }
@@ -246,6 +310,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
   color: var(--paper);
   padding: 18px 48px 20px;
   box-shadow: 0 2px 16px rgba(42, 31, 21, 0.18);
+}
+.restaurant-page .filter {
+  top: 54px;
 }
 .filter-head {
   display: flex;
@@ -445,23 +512,35 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .item.dim { opacity: 0.42; }
 .item-main { min-width: 0; }
 .item-head {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
+  position: relative;
   margin-bottom: 8px;
+}
+.item-head::after {
+  content: "";
+  position: absolute;
+  top: 0.9em;
+  left: 0;
+  right: 0;
+  border-bottom: 1px dotted var(--dot);
+  z-index: 0;
 }
 .item-name {
   font-family: var(--font-serif), Georgia, serif;
   font-size: 22px;
   line-height: 1.1;
   color: var(--ink);
-  flex-shrink: 0;
+  display: inline;
+  position: relative;
+  z-index: 1;
+  background: var(--paper);
+  padding-right: 10px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
 .leader {
-  flex: 1;
-  border-bottom: 1px dotted var(--dot);
-  transform: translateY(-6px);
-  min-width: 12px;
+  display: none;
 }
 .item-category {
   font-size: 11px;
@@ -562,9 +641,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
   position: absolute;
   left: 24px;
   right: 0;
-  bottom: 28px;
-  height: 52px;
-  background: linear-gradient(to bottom, rgba(245, 237, 220, 0), rgba(245, 237, 220, 0.98));
+  bottom: 18px;
+  height: 120px;
+  background: linear-gradient(to bottom, rgba(245, 237, 220, 0), var(--paper));
   pointer-events: none;
 }
 @media (max-width: 619px) {
@@ -601,8 +680,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .cover-deck { flex-direction: column; }
   .toc { padding: 28px 24px 48px; }
   .toc-page { display: none; }
-  .page-head { padding: 28px 24px 20px; }
+  .crumb-rail { padding: 20px 24px 14px; }
+  .page-head { padding: 0 24px 20px; }
   .filter { padding: 16px 24px 16px; }
+  .restaurant-page .filter { top: 50px; }
   .menu-section { padding: 28px 24px 8px; }
   .colophon { padding: 40px 24px 64px; }
   .empty-note { padding: 48px 24px; }

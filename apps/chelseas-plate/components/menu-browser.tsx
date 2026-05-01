@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { type MenuItem } from "@/lib/data";
 
 type MenuBrowserProps = {
@@ -14,6 +14,40 @@ type Group = {
   accent: "sage" | "rose";
   items: MenuItem[];
 };
+
+function getFilterOffset() {
+  const filter = document.querySelector(".filter");
+  const filterH = filter ? filter.getBoundingClientRect().height : 180;
+  return filterH + 24;
+}
+
+function getClosestSection(groups: Group[]) {
+  const offset = getFilterOffset();
+  const sectionPositions = groups
+    .map((group) => {
+      const element = document.getElementById(`sec-${group.id}`);
+      if (!element) {
+        return null;
+      }
+
+      return {
+        id: group.id,
+        top: element.getBoundingClientRect().top + window.scrollY - offset,
+      };
+    })
+    .filter(Boolean) as { id: string; top: number }[];
+
+  if (sectionPositions.length === 0) {
+    return groups[0]?.id ?? "safe";
+  }
+
+  const currentY = window.scrollY;
+  const currentSection = [...sectionPositions]
+    .reverse()
+    .find((section) => currentY >= section.top - 2);
+
+  return currentSection?.id ?? sectionPositions[0].id;
+}
 
 function splitItems(items: MenuItem[], excluded: string[], query: string) {
   const q = query.trim().toLowerCase();
@@ -70,36 +104,26 @@ export function MenuBrowser({ items, availableAllergens: availableAllergensProp 
     }));
   }
 
-  // Scrollspy
-  const sectionRefs = useRef<Map<string, HTMLElement>>(new Map());
-
   useEffect(() => {
-    if (typeof IntersectionObserver === "undefined") return;
-    const els = groups.map((g) => document.getElementById(`sec-${g.id}`)).filter(Boolean) as HTMLElement[];
-    if (els.length === 0) return;
+    const updateActiveSection = () => {
+      setActiveSection(getClosestSection(groups));
+    };
 
-    const obs = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        if (visible[0]) {
-          setActiveSection(visible[0].target.id.replace(/^sec-/, ""));
-        }
-      },
-      { rootMargin: "-200px 0px -55% 0px", threshold: 0 },
-    );
+    updateActiveSection();
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    window.addEventListener("resize", updateActiveSection);
 
-    els.forEach((el) => obs.observe(el));
-    return () => obs.disconnect();
-  }, [groups.length, selectedAllergens.join(",")]);
+    return () => {
+      window.removeEventListener("scroll", updateActiveSection);
+      window.removeEventListener("resize", updateActiveSection);
+    };
+  }, [groups]);
 
   function jumpTo(id: string) {
     const el = document.getElementById(`sec-${id}`);
     if (!el) return;
-    const filter = document.querySelector(".filter");
-    const filterH = filter ? filter.getBoundingClientRect().height : 180;
-    const y = el.getBoundingClientRect().top + window.scrollY - filterH - 16;
+    setActiveSection(id);
+    const y = el.getBoundingClientRect().top + window.scrollY - getFilterOffset() + 8;
     window.scrollTo({ top: y, behavior: "smooth" });
   }
 

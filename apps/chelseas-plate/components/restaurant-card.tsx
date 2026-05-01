@@ -1,6 +1,6 @@
 import React from "react";
-import Link from "next/link";
 import { type Restaurant } from "@/lib/data";
+import { TransitionLink } from "@/components/transition-link";
 
 type RestaurantCardProps = {
   restaurant: Restaurant;
@@ -12,13 +12,13 @@ export function RestaurantCard({ restaurant, index }: RestaurantCardProps) {
   const page = (index + 1) * 4 + 8;
 
   return (
-    <Link className="toc-row" href={`/restaurants/${restaurant.slug}`}>
+    <TransitionLink className="toc-row" href={`/restaurants/${restaurant.slug}`} direction="forward">
       <div className="toc-num">{num}</div>
       <div>
         <div className="toc-name">{restaurant.name}</div>
         {restaurant.cuisineHint && <div className="toc-tagline">{restaurant.cuisineHint}</div>}
       </div>
       <div className="toc-page">p.&nbsp;{page}</div>
-    </Link>
+    </TransitionLink>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Serif_Display, Cormorant_Garamond, Inter } from "next/font/google";
+import { PageTransitionShell } from "@/components/page-transition-shell";
 import "./globals.css";
 
 const dmSerifDisplay = DM_Serif_Display({
@@ -41,7 +42,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <span>Apr. 2026</span>
             </div>
           </header>
-          {children}
+          <PageTransitionShell>{children}</PageTransitionShell>
         </div>
       </body>
     </html>

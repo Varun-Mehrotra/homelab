@@ -212,8 +212,11 @@ After changing Supabase data or seed content:
 
 ## Current Seed State
 
-At the time of writing, the seed is intentionally small:
+At the time of writing, the seed is generated from the current McDonald's Canada public menu and item detail pages:
 - one restaurant: `McDonald's Canada`
-- two items: `Hamburger` and `McChicken`
+- current generated menu size: `166` items
+- current generated component size: `622` components
 
-This is deliberate. Expand incrementally rather than replacing it with a large unreviewed import.
+Operational notes:
+- the generator currently skips a few broken product links if McDonald's leaves dead links in category pages
+- the live site can rate-limit repeated full scrapes, so the checked-in `seed.sql` is the source of truth after a successful generation run
