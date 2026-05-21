@@ -55,24 +55,33 @@ spec:
                 secretKeyRef:
                   name: vicinity-secrets
                   key: supabase-service-role-key
-          readinessProbe:
+          startupProbe:
             httpGet:
               path: /
               port: 3000
             initialDelaySeconds: 10
             periodSeconds: 5
+            failureThreshold: 24
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 10
             failureThreshold: 3
             successThreshold: 1
-            timeoutSeconds: 1
+            timeoutSeconds: 5
+
           livenessProbe:
             httpGet:
               path: /
               port: 3000
-            initialDelaySeconds: 30
+            initialDelaySeconds: 60
             periodSeconds: 10
-            failureThreshold: 3
+            failureThreshold: 6
             successThreshold: 1
-            timeoutSeconds: 1
+            timeoutSeconds: 5
           resources:
             requests:
               cpu: 100m
