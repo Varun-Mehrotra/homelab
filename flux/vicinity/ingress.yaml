@@ -10,7 +10,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: vicinity.webguru.ca
+    - host: inyourvicinity.ca
       http:
         paths:
           - path: /
