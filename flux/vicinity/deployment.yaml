@@ -30,6 +30,8 @@ spec:
               value: "3000"
             - name: NEXT_TELEMETRY_DISABLED
               value: "1"
+            - name: SITE_URL
+              value: "https://inyourvicinity.ca"
             - name: NEXT_PUBLIC_SUPABASE_URL
               valueFrom:
                 secretKeyRef:
