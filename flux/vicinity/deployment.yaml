@@ -29,7 +29,7 @@ spec:
               value: production
             - name: PORT
               value: "3000"
-            - name: NEXT_PUBLIC_GA_MEASUREMENT_ID
+            - name: GA_MEASUREMENT_ID
               valueFrom:
                 secretKeyRef:
                   name: ga
