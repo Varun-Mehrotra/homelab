@@ -62,6 +62,16 @@ spec:
                 secretKeyRef:
                   name: vicinity-secrets
                   key: supabase-service-role-key
+            - name: GOOGLE_OAUTH_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: google-oauth-secrets
+                  key: google-oauth-client-id
+            - name: GOOGLE_OAUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: google-oauth-secrets
+                  key: google-oauth-client-secret
           startupProbe:
             httpGet:
               path: /
