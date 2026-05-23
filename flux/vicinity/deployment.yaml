@@ -22,7 +22,8 @@ spec:
           image: ghcr.io/varun-mehrotra/vicinity:latest
           imagePullPolicy: Always
           ports:
-            - containerPort: 3000
+            - name: http
+              containerPort: 3000
           env:
             - name: NODE_ENV
               value: production
@@ -74,31 +75,27 @@ spec:
                   key: google-oauth-client-secret
           startupProbe:
             httpGet:
-              path: /
-              port: 3000
-            initialDelaySeconds: 10
+              path: /health
+              port: http
             periodSeconds: 5
-            failureThreshold: 24
-            timeoutSeconds: 5
+            failureThreshold: 30
+            timeoutSeconds: 3
           readinessProbe:
             httpGet:
-              path: /
-              port: 3000
-            initialDelaySeconds: 15
+              path: /health
+              port: http
             periodSeconds: 10
             failureThreshold: 3
             successThreshold: 1
-            timeoutSeconds: 5
-
+            timeoutSeconds: 3
           livenessProbe:
             httpGet:
-              path: /
-              port: 3000
-            initialDelaySeconds: 60
-            periodSeconds: 10
-            failureThreshold: 6
+              path: /health
+              port: http
+            periodSeconds: 30
+            failureThreshold: 3
             successThreshold: 1
-            timeoutSeconds: 5
+            timeoutSeconds: 3
           resources:
             requests:
               cpu: 100m
