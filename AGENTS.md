@@ -73,6 +73,8 @@ Current managed namespaces in `flux/kustomization.yaml`:
 - `default`
 - `kube-system`
 - `metallb-system`
+- `tailscale`
+- `monitoring`
 - `vicinity`
 - `freshrss`
 - `ntfy`
@@ -272,6 +274,8 @@ Documented required secrets from `README.md`:
 - `vicinity/ghcr-creds`
 - `vicinity/vicinity-secrets`
 - `freshrss/freshrss-bootstrap`
+- `tailscale/operator-oauth`
+- `monitoring/grafana-admin`
 - `ntfy/ntfy-auth`
 - `osrs-flips/ghcr-creds`
 - `osrs-flips/osrs-recommender-secrets`
@@ -295,6 +299,12 @@ Expected secret contents, based on repo docs:
 - `freshrss-bootstrap`
   - `FRESHRSS_INSTALL`
   - `FRESHRSS_USER`
+- `operator-oauth`
+  - `client_id`
+  - `client_secret`
+- `grafana-admin`
+  - `admin-user`
+  - `admin-password`
 - `ntfy-auth`
   - `NTFY_AUTH_USERS`
   - `NTFY_AUTH_ACCESS`

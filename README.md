@@ -154,6 +154,8 @@ Current managed namespaces:
 - `default`
 - `kube-system`
 - `metallb-system`
+- `tailscale`
+- `monitoring`
 - `vicinity`
 - `freshrss`
 - `ntfy`
@@ -171,6 +173,8 @@ Required secrets:
 - `vicinity/ghcr-creds`
 - `vicinity/vicinity-secrets`
 - `freshrss/freshrss-bootstrap`
+- `tailscale/operator-oauth`
+- `monitoring/grafana-admin`
 - `ntfy/ntfy-auth`
 - `osrs-flips/ghcr-creds`
 - `osrs-flips/osrs-recommender-secrets`
@@ -181,6 +185,8 @@ Expected keys:
 - `chelseas-plate-secrets`: `supabase-url`, `supabase-anon-key`, `supabase-service-role-key`
 - `vicinity-secrets`: `supabase-url`, `supabase-anon-key`, `supabase-service-role-key`
 - `freshrss-bootstrap`: `FRESHRSS_INSTALL`, `FRESHRSS_USER`
+- `operator-oauth`: Tailscale OAuth `client_id`, `client_secret`
+- `grafana-admin`: `admin-user`, `admin-password`
 - `ntfy-auth`: `NTFY_AUTH_USERS`, `NTFY_AUTH_ACCESS`, `NTFY_AUTH_TOKENS`
 - `osrs-recommender-secrets`: `NTFY_TOKEN`
 
@@ -275,9 +281,9 @@ kubectl get ingress -n chelseas-plate
 
 ## Vicinity setup
 
-Vicinity is managed by Flux in `flux/vicinity` and is exposed through Traefik at `https://vicinity.webguru.ca`.
+Vicinity is managed by Flux in `flux/vicinity` and is exposed through Traefik at `https://inyourvicinity.ca`.
 
-Before Flux reconciles the manifests, create DNS for `vicinity.webguru.ca` pointing at the same public route used by the Traefik/MetalLB endpoint for `10.88.111.240`.
+Before Flux reconciles the manifests, create DNS for `inyourvicinity.ca` pointing at the same public route used by the Traefik/MetalLB endpoint for `10.88.111.240`.
 
 Build and publish the image after changing the app:
 
@@ -378,6 +384,51 @@ After Flux applies the manifests, verify ntfy:
 kubectl get deploy,svc,ingress,pvc -n ntfy
 kubectl logs -n ntfy deploy/ntfy
 ```
+
+## Observability setup
+
+The observability stack is managed by Flux in `flux/monitoring`.
+
+It installs `kube-prometheus-stack` for Prometheus, Grafana, kube-state-metrics, and node-exporter. Alertmanager and notification routing are intentionally disabled for now and can be added later. Grafana is not exposed through Traefik. It is exposed only to the tailnet through the Tailscale Kubernetes Operator service `monitoring/grafana-tailnet`.
+
+Before Flux reconciles the manifests, configure these Tailscale tailnet prerequisites:
+
+- create `tag:k8s-operator`
+- create `tag:k8s`
+- allow `tag:k8s-operator` to own `tag:k8s`
+- create an OAuth client with `Devices Core`, `Auth Keys`, and `Services` write scopes
+- restrict the Grafana tailnet hostname with Tailscale ACLs to admin users/devices
+
+Create the Tailscale OAuth secret manually:
+
+```sh
+kubectl create namespace tailscale
+
+kubectl -n tailscale create secret generic operator-oauth \
+  --from-literal=client_id='<tailscale-oauth-client-id>' \
+  --from-literal=client_secret='<tailscale-oauth-client-secret>'
+```
+
+Create Grafana admin credentials manually:
+
+```sh
+kubectl create namespace monitoring
+
+kubectl -n monitoring create secret generic grafana-admin \
+  --from-literal=admin-user='admin' \
+  --from-literal=admin-password='<grafana-admin-password>'
+```
+
+After Flux applies the manifests, verify the stack:
+
+```sh
+kubectl get helmrepositories,helmreleases -n flux-system
+kubectl get pods,svc,pvc -n tailscale
+kubectl get pods,svc,pvc -n monitoring
+kubectl get servicemonitors,podmonitors -n monitoring
+```
+
+Grafana should appear as a tailnet service named from the `monitoring/grafana-tailnet` service with the requested hostname annotation `grafana`. Do not create public DNS or a Traefik ingress for Grafana.
 
 ## OSRS flip recommender
 

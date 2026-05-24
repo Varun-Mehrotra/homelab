@@ -7,6 +7,8 @@ resources:
   - default
   - kube-system
   - metallb-system
+  - tailscale
+  - monitoring
   - vicinity
   - freshrss
   - ntfy

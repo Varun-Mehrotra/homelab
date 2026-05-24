@@ -10,6 +10,9 @@ spec:
       - --certificatesresolvers.le.acme.email=varun.mehrotra@webguru.ca
       - --certificatesresolvers.le.acme.storage=/data/acme.json
       - --certificatesresolvers.le.acme.tlschallenge=true
+      - --metrics.prometheus.addentrypointslabels=true
+      - --metrics.prometheus.addrouterslabels=true
+      - --metrics.prometheus.addserviceslabels=true
 
     ports:
       web:
